@@ -4,9 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "lint": "./node_modules/.bin/eslint ./*.js --fix",
+    "coverage": "cat ./coverage/lcov.info | coveralls",
+    "lint": "./node_modules/.bin/eslint ./*.js ./__tests__/**/*.js --fix",
     "start": "node index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "cross-env NODE_ENV=test jest --coverage",
+    "test:watch": "cross-env NODE_ENV=test jest --watch"
   },
   "author": "",
   "license": "ISC",
@@ -14,6 +16,16 @@
     "ws": "^5.1.1"
   },
   "devDependencies": {
-    "eslint": "^4.19.1"
+    "coveralls": "^3.0.1",
+    "cross-env": "^5.1.4",
+    "eslint": "^4.19.1",
+    "jest": "^22.4.3",
+    "jest-cli": "^22.4.3"
+  },
+  "jest": {
+    "modulePathIgnorePatterns": [
+      "__tests__/helpers/"
+    ],
+    "verbose": true
   }
 }
