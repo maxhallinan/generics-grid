@@ -1,21 +1,72 @@
+require(`dotenv`).config();
+const EventEmitter = require(`events`);
+const uuidv1 = require(`uuid/v1`);
 const WebSocket = require(`ws`);
+const logger = require(`./logger`);
+const util = require(`./util`);
 
-// eslint-disable-next-line no-console 
-const log = (...args) => console.log(...args);
-const port = process.argv[2] || 8080;
+// data source
+const dataEvents = {
+  DATA: `data`,
+};
+const emitter = new EventEmitter();
+setInterval(() => {
+  emitter.emit(dataEvents.DATA, { foo: Date.now(), });
+}, 1500);
 
-const wss = new WebSocket.Server({ port, });
+// server
+const serverEvents = {
+  CLOSE: `close`,
+  CONNECTION : `connection`,
+};
+const port = util.toInt(process.env.GENERICS_GRID_WS_PORT);
+const server = new WebSocket.Server({ port, });
 
-wss.on(`connection`, (ws) => {
-  log(`Connection opened. Timestamp: \${Date.now()}`);
+const app = {
+  defaultScale: {
+    x: util.toInt(process.env.GENERICS_GRID_SCALE_X),
+    y: util.toInt(process.env.GENERICS_GRID_SCALE_Y),
+  },
+  dataSource: emitter,
+  logger,
+  server,
+};
 
-  const intervalId = setInterval(() => {
-    ws.send(Date.now());
-  }, 1500);
+const startSession = (app) => (websocket) => {
+  // placeholder
+  const id = uuidv1();
+  const startedAt = Date.now();
+  app.logger.log(`Session ${id} started at ${startedAt}.`);
 
-  ws.on(`close`, () => {
-    clearInterval(intervalId);
-  });
-});
+  const session = {
+    id,
+    scale: {
+      ...app.defaultScale,
+    },
+    startedAt,
+    websocket: websocket,
+  };
 
-log(`Server started on port ${port}`);
+  websocket.on(serverEvents.CLOSE, endSession(app, session));
+  app.dataSource.on(dataEvents.DATA, sendMsg(app, session));
+};
+
+const endSession = (app, session) => () => {
+  const endedAt = Date.now();
+  app.logger.log(`Session ${session.id} ended at ${endedAt}`);
+};
+
+const sendMsg = (app, session) => (data) => {
+  const sentAt = Date.now();
+  const msg = {
+    data,
+    sentAt,
+    scale: session.scale,
+  };
+  const serialized = JSON.stringify(msg);
+  session.websocket.send(serialized);
+  app.logger.log(`Session ${session.id} msg sent at ${sentAt}`);
+  app.logger.log(`Session ${session.id} msg ${serialized}`);
+};
+
+server.on(serverEvents.CONNECTION, startSession(app));
