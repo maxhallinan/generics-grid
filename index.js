@@ -24,9 +24,15 @@ const port = util.toInt(process.env.GENERICS_GRID_WS_PORT);
 const server = new WebSocket.Server({ port, });
 
 const app = {
-  defaultScale: {
-    x: util.toInt(process.env.GENERICS_GRID_SCALE_X),
-    y: util.toInt(process.env.GENERICS_GRID_SCALE_Y),
+  defaultRanges: {
+    x: [
+      util.toInt(process.env.GENERICS_GRID_RANGE_X_START),
+      util.toInt(process.env.GENERICS_GRID_RANGE_X_STOP),
+    ],
+    y: [
+      util.toInt(process.env.GENERICS_GRID_RANGE_Y_START),
+      util.toInt(process.env.GENERICS_GRID_RANGE_Y_STOP),
+    ],
   },
   dataSource: emitter,
   logger,
@@ -34,20 +40,25 @@ const app = {
 };
 
 const startSession = (app) => (websocket, request) => {
-  // placeholder
   const id = uuidv1();
   const startedAt = Date.now();
   app.logger.log(`Session ${id} started at ${startedAt}.`);
 
   const { query, } = url.parse(request.url, true);
-  const scale = {
-    x: util.toInt(query.x) || app.defaultScale.x,
-    y: util.toInt(query.y) || app.defaultScale.y,
+  const ranges = {
+    x: [
+      util.toInt(query.x_start) || app.defaultRanges.x[0],
+      util.toInt(query.x_stop) || app.defaultRanges.x[1],
+    ],
+    y: [
+      util.toInt(query.y_start) || app.defaultRanges.y[0],
+      util.toInt(query.y_stop) || app.defaultRanges.y[1],
+    ],
   };
 
   const session = {
     id,
-    scale,
+    ranges,
     startedAt,
     websocket: websocket,
   };
@@ -66,7 +77,7 @@ const sendMsg = (app, session) => (data) => {
   const msg = {
     data,
     sentAt,
-    scale: session.scale,
+    ranges: session.ranges,
   };
   const serialized = JSON.stringify(msg);
   session.websocket.send(serialized);

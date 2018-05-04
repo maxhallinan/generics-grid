@@ -11,5 +11,3 @@ const sessionToMsg = (timestamp, session) => ({
   scale: session.scale,
 });
 module.exports.sessionToMsg = sessionToMsg;
-
-

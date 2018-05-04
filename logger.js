@@ -1,2 +1,4 @@
+const _ = module.exports;
+
 // eslint-disable-next-line no-console
-module.exports.log = (...args) => console.log(...args);
+_.log = (...args) => console.log(...args);

@@ -1,1 +1,3 @@
-module.exports.toInt = (x) => parseInt(x, 10);
+const _ = module.exports;
+
+_.toInt = (x) => parseInt(x, 10);
