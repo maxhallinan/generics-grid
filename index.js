@@ -1,5 +1,6 @@
 require(`dotenv`).config();
 const EventEmitter = require(`events`);
+const url = require(`url`);
 const uuidv1 = require(`uuid/v1`);
 const WebSocket = require(`ws`);
 const logger = require(`./logger`);
@@ -32,17 +33,21 @@ const app = {
   server,
 };
 
-const startSession = (app) => (websocket) => {
+const startSession = (app) => (websocket, request) => {
   // placeholder
   const id = uuidv1();
   const startedAt = Date.now();
   app.logger.log(`Session ${id} started at ${startedAt}.`);
 
+  const { query, } = url.parse(request.url, true);
+  const scale = {
+    x: util.toInt(query.x) || app.defaultScale.x,
+    y: util.toInt(query.y) || app.defaultScale.y,
+  };
+
   const session = {
     id,
-    scale: {
-      ...app.defaultScale,
-    },
+    scale,
     startedAt,
     websocket: websocket,
   };
