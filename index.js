@@ -3,17 +3,20 @@ const EventEmitter = require(`events`);
 const url = require(`url`);
 const uuidv1 = require(`uuid/v1`);
 const WebSocket = require(`ws`);
+const dimensions = require(`./grid/dimensions`);
 const logger = require(`./logger`);
+const originalPoints = require(`./points.json`);
+const points = require(`./grid/points`);
 const util = require(`./util`);
 
 // data source
-const dataEvents = {
+const pathEvents = {
   DATA: `data`,
 };
 const emitter = new EventEmitter();
 setInterval(() => {
-  emitter.emit(dataEvents.DATA, { foo: Date.now(), });
-}, 1500);
+  emitter.emit(pathEvents.DATA, { foo: Date.now(), });
+}, 2000);
 
 // server
 const serverEvents = {
@@ -23,21 +26,38 @@ const serverEvents = {
 const port = util.toInt(process.env.GENERICS_GRID_WS_PORT);
 const server = new WebSocket.Server({ port, });
 
+const originalRanges = points.rangesOf2dPoints(originalPoints);
+
+const defaultRanges = dimensions.to2dRanges([
+  util.toInt(process.env.GENERICS_GRID_RANGE_X_START),
+  util.toInt(process.env.GENERICS_GRID_RANGE_X_STOP),
+], [
+  util.toInt(process.env.GENERICS_GRID_RANGE_Y_START),
+  util.toInt(process.env.GENERICS_GRID_RANGE_Y_STOP),
+]);
+
 const app = {
-  defaultRanges: {
-    x: [
-      util.toInt(process.env.GENERICS_GRID_RANGE_X_START),
-      util.toInt(process.env.GENERICS_GRID_RANGE_X_STOP),
-    ],
-    y: [
-      util.toInt(process.env.GENERICS_GRID_RANGE_Y_START),
-      util.toInt(process.env.GENERICS_GRID_RANGE_Y_STOP),
-    ],
+  defaults: {
+    ranges: defaultRanges,
   },
-  dataSource: emitter,
   logger,
+  original: {
+    points: originalPoints,
+    ranges: originalRanges,
+  },
+  paths: {
+    source: emitter,
+  },
+  points: {
+    ids: points.createIds(originalPoints),
+  },
   server,
 };
+
+const toSessionPoints = util.compose(
+  points.floor2dPoints,
+  points.scale2dPointsToRanges,
+);
 
 const startSession = (app) => (websocket, request) => {
   const id = uuidv1();
@@ -45,26 +65,36 @@ const startSession = (app) => (websocket, request) => {
   app.logger.log(`Session ${id} started at ${startedAt}.`);
 
   const { query, } = url.parse(request.url, true);
-  const ranges = {
-    x: [
-      util.toInt(query.x_start) || app.defaultRanges.x[0],
-      util.toInt(query.x_stop) || app.defaultRanges.x[1],
-    ],
-    y: [
-      util.toInt(query.y_start) || app.defaultRanges.y[0],
-      util.toInt(query.y_stop) || app.defaultRanges.y[1],
-    ],
-  };
+
+  const sessionRanges = dimensions.to2dRanges([
+    util.toInt(query.x_start) || app.defaults.ranges.x[0],
+    util.toInt(query.x_stop) || app.defaults.ranges.x[1],
+  ], [
+    util.toInt(query.y_start) || app.defaults.ranges.y[0],
+    util.toInt(query.y_stop) || app.defaults.ranges.y[1],
+  ]);
+
+  const sessionDimensions = dimensions.to2d(
+    sessionRanges.x,
+    sessionRanges.y,
+  );
+
+  const sessionPoints = toSessionPoints(
+    sessionRanges,
+    app.defaults.ranges,
+    app.original.points,
+  );
 
   const session = {
     id,
-    ranges,
+    dimensions: sessionDimensions,
+    points: sessionPoints,
     startedAt,
     websocket: websocket,
   };
 
   websocket.on(serverEvents.CLOSE, endSession(app, session));
-  app.dataSource.on(dataEvents.DATA, sendMsg(app, session));
+  app.paths.source.on(pathEvents.DATA, sendMsg(app, session));
 };
 
 const endSession = (app, session) => () => {
@@ -75,9 +105,10 @@ const endSession = (app, session) => () => {
 const sendMsg = (app, session) => (data) => {
   const sentAt = Date.now();
   const msg = {
-    data,
+    paths: [],
+    points: points.toPublic(app.points.ids, session.points),
+    dimensions: session.dimensions,
     sentAt,
-    ranges: session.ranges,
   };
   const serialized = JSON.stringify(msg);
   session.websocket.send(serialized);

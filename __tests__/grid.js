@@ -32,34 +32,21 @@ describe(`grid > scaleRange`, () => {
   });
 });
 
-describe(`grid > scale2dPoints`, () => {
+describe(`grid > scale2dPoint`, () => {
+  const oldRanges = {
+    x: [1, 10],
+    y: [1, 10],
+  };
   const newRanges = {
     x: [ 11, 20, ],
     y: [ 21, 30, ],
   };
-
-  const points = [
-    [ 1, 1, ],
-    [ 2, 2, ],
-    [ 5, 5, ],
-    [ 7, 7, ],
-    [ 10, 10, ],
-  ];
-
-  const expected = [
-    [ 11, 21, ],
-    [ 12, 22, ],
-    [ 15, 25, ],
-    [ 17, 27, ],
-    [ 20, 30, ],
-  ];
-
-  const actual = grid.scale2dPoints(newRanges, points);
+  const point = [2, 5];
+  const expected = [ 12, 25 ];
+  const actual = grid.scale2dPoint(newRanges, oldRanges, point);
 
   test(`Converts each pair of numbers to the expected pair of numbers.`, () => {
-    actual.forEach((point, index) => {
-      expect(point[0]).toBe(expected[index][0]);
-      expect(point[1]).toBe(expected[index][1]);
-    });
+    expect(actual[0]).toBe(expected[0]);
+    expect(actual[1]).toBe(expected[1]);
   });
 });
