@@ -5,7 +5,7 @@ const uuidv1 = require(`uuid/v1`);
 const WebSocket = require(`ws`);
 const dimensions = require(`./grid/dimensions`);
 const logger = require(`./logger`);
-const originalPoints = require(`./points.json`);
+const originalPoints = require(`./data/points.json`);
 const points = require(`./grid/points`);
 const util = require(`./util`);
 
