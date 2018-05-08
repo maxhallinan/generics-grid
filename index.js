@@ -56,7 +56,7 @@ const app = {
 
 const toSessionPoints = util.compose(
   points.floor2dPoints,
-  points.scale2dPointsToRanges,
+  points.scale2dPointsToRanges
 );
 
 const startSession = (app) => (websocket, request) => {
@@ -76,13 +76,13 @@ const startSession = (app) => (websocket, request) => {
 
   const sessionDimensions = dimensions.to2d(
     sessionRanges.x,
-    sessionRanges.y,
+    sessionRanges.y
   );
 
   const sessionPoints = toSessionPoints(
     sessionRanges,
     app.defaults.ranges,
-    app.original.points,
+    app.original.points
   );
 
   const session = {
@@ -102,7 +102,7 @@ const endSession = (app, session) => () => {
   app.logger.log(`Session ${session.id} ended at ${endedAt}`);
 };
 
-const sendMsg = (app, session) => (data) => {
+const sendMsg = (app, session) => () => {
   const sentAt = Date.now();
   const msg = {
     paths: [],
