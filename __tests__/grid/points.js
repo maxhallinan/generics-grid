@@ -193,7 +193,21 @@ describe(`grid > points`, () => {
     );
   });
 
-  describe(`grid > points > floor2dCoordinates`, () => {});
+  describe(`grid > points > floor2dCoordinates`, () => {
+    const coordinates = {
+      x: 1.1,
+      y: 2.001,
+    };
+    const actual = points.floor2dCoordinates(coordinates);
+    const expected = {
+      x: 1,
+      y: 2,
+    };
+    test(`Floors the values of a 2d coordinate.`, () => {
+      expect(actual).toMatchObject(expected);
+    });
+  });
+
   describe(`grid > points > floor2dPoints`, () => {});
   describe(`grid > points > toPublicIds`, () => {});
   describe(`grid > points > toPublic`, () => {});

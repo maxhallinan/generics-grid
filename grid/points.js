@@ -58,7 +58,7 @@ _.scale2dPointsToRanges = (newRanges, oldRanges, points) =>
 _.floor2dCoordinates = (coordinates) => util.mapObj(Math.floor, coordinates);
 
 _.floor2dPoints = (points) =>
-  util.mapObj((point) => console.log('coordinates', point) || ({
+  util.mapObj((point) => ({
     ...point,
     coordinates: _.floor2dCoordinates(point.coordinates),
   }), points);
