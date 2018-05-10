@@ -25,7 +25,7 @@ _.publicToPrivateIds = (privateToPublic) =>
   Object.entries(privateToPublic).reduce((acc, [ internalId, publicId, ]) => {
     acc[publicId] = internalId;
     return acc;
-  });
+  }, {});
 
 _.createIds = (points) => {
   const privateToPublic = _.privateToPublicIds(points);

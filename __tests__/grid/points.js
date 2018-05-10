@@ -61,7 +61,16 @@ describe(`grid > points`, () => {
     });
   });
 
-  describe(`grid > points > publicToPrivateIds`, () => {});
+  describe(`grid > points > publicToPrivateIds`, () => {
+    const privateToPublic = points.privateToPublicIds(ps);
+    const publicToPrivate = points.publicToPrivateIds(privateToPublic);
+    test(`Creates an entry in the lookup table for each public id.`, () => {
+      Object.entries(privateToPublic).forEach(([privateId, publicId]) => {
+        expect(publicToPrivate[publicId]).toBe(privateId);
+      });
+    });
+  });
+
   describe(`grid > points > createIds`, () => {});
   describe(`grid > points > scaleToRange`, () => {});
   describe(`grid > points > scale2dCoordToRanges`, () => {});
