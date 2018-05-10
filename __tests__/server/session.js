@@ -65,4 +65,69 @@ describe(`server > session`, () => {
       expect(actual.y).toEqual(expect.arrayContaining(expected.y));
     });
   });
+
+  describe(`server > session > toPoints`, () => {
+    const sessionRanges = {
+      x: [1, 10],
+      y: [11, 20],
+    };
+    const originalRanges = {
+      x: [1, 100],
+      y: [101, 200],
+    };
+    const originalPoints = {
+      '1': {
+        id: '1',
+        coordinates: {
+          x: 10,
+          y: 110,
+        },
+      },
+      '2': {
+        id: '2',
+        coordinates: {
+          x: 20,
+          y: 120,
+        },
+      },
+      '3': {
+        id: '3',
+        coordinates: {
+          x: 30,
+          y: 130,
+        },
+      },
+    };
+    const expected = {
+      '1': {
+        id: '1',
+        coordinates: {
+          x: 1,
+          y: 11,
+        },
+      },
+      '2': {
+        id: '2',
+        coordinates: {
+          x: 2,
+          y: 12,
+        },
+      },
+      '3': {
+        id: '3',
+        coordinates: {
+          x: 3,
+          y: 13,
+        },
+      },
+    };
+    const actual = session.toPoints(
+      sessionRanges,
+      originalRanges,
+      originalPoints
+    );
+    test(`Scales and floors each point coordinates.`, () => {
+      expect(actual).toMatchObject(expected);
+    });
+  });
 });

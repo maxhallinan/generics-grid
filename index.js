@@ -55,11 +55,6 @@ const app = {
   server,
 };
 
-const toSessionPoints = util.compose(
-  points.floor2dPoints,
-  points.scale2dPointsToRanges
-);
-
 const startSession = (app) => (websocket, request) => {
   const id = uuidv1();
   const startedAt = Date.now();
@@ -74,7 +69,7 @@ const startSession = (app) => (websocket, request) => {
     sessionRanges.y
   );
 
-  const sessionPoints = toSessionPoints(
+  const sessionPoints = session.toPoints(
     sessionRanges,
     app.original.ranges,
     app.original.points
