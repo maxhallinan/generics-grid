@@ -83,12 +83,18 @@ const startSession = (app) => (websocket, request) => {
     websocket: websocket,
   };
 
-  websocket.on(serverEvents.CLOSE, endSession(app, sessionState));
-  app.paths.source.on(pathEvents.DATA, sendMsg(app, sessionState));
+  const pathsListener = sendMsg(app, sessionState);
+
+  app.paths.source.on(pathEvents.DATA, pathsListener);
+  websocket.on(
+    serverEvents.CLOSE,
+    endSession(app, sessionState, pathsListener)
+  );
 };
 
-const endSession = (app, sessionState) => () => {
+const endSession = (app, sessionState, pathsListener) => () => {
   const endedAt = Date.now();
+  app.paths.source.removeListener(pathEvents.DATA, pathsListener);
   app.logger.log(`Session ${sessionState.id} ended at ${endedAt}`);
 };
 
