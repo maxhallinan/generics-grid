@@ -26,7 +26,8 @@
   },
   "jest": {
     "modulePathIgnorePatterns": [
-      "__tests__/helpers/"
+      "__tests__/helpers/",
+      "__tests__/fixtures/"
     ],
     "verbose": true
   }
