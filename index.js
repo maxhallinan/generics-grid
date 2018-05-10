@@ -7,6 +7,7 @@ const dimensions = require(`./grid/dimensions`);
 const logger = require(`./logger`);
 const originalPoints = require(`./data/points.json`);
 const points = require(`./grid/points`);
+const session = require(`./server/session`);
 const util = require(`./util`);
 
 // data source
@@ -66,13 +67,7 @@ const startSession = (app) => (websocket, request) => {
 
   const { query, } = url.parse(request.url, true);
 
-  const sessionRanges = dimensions.to2dRanges([
-    util.toInt(query.x_start) || app.defaults.ranges.x[0],
-    util.toInt(query.x_stop) || app.defaults.ranges.x[1],
-  ], [
-    util.toInt(query.y_start) || app.defaults.ranges.y[0],
-    util.toInt(query.y_stop) || app.defaults.ranges.y[1],
-  ]);
+  const sessionRanges = session.toRanges(query, app.defaults.ranges);
 
   const sessionDimensions = dimensions.to2d(
     sessionRanges.x,
@@ -81,11 +76,11 @@ const startSession = (app) => (websocket, request) => {
 
   const sessionPoints = toSessionPoints(
     sessionRanges,
-    app.defaults.ranges,
+    app.original.ranges,
     app.original.points
   );
 
-  const session = {
+  const sessionState = {
     id,
     dimensions: sessionDimensions,
     points: sessionPoints,
@@ -93,27 +88,27 @@ const startSession = (app) => (websocket, request) => {
     websocket: websocket,
   };
 
-  websocket.on(serverEvents.CLOSE, endSession(app, session));
-  app.paths.source.on(pathEvents.DATA, sendMsg(app, session));
+  websocket.on(serverEvents.CLOSE, endSession(app, sessionState));
+  app.paths.source.on(pathEvents.DATA, sendMsg(app, sessionState));
 };
 
-const endSession = (app, session) => () => {
+const endSession = (app, sessionState) => () => {
   const endedAt = Date.now();
-  app.logger.log(`Session ${session.id} ended at ${endedAt}`);
+  app.logger.log(`Session ${sessionState.id} ended at ${endedAt}`);
 };
 
-const sendMsg = (app, session) => () => {
+const sendMsg = (app, sessionState) => () => {
   const sentAt = Date.now();
   const msg = {
     paths: [],
-    points: points.toPublic(app.points.ids, session.points),
-    dimensions: session.dimensions,
+    points: points.toPublic(app.points.ids, sessionState.points),
+    dimensions: sessionState.dimensions,
     sentAt,
   };
   const serialized = JSON.stringify(msg);
-  session.websocket.send(serialized);
-  app.logger.log(`Session ${session.id} msg sent at ${sentAt}`);
-  app.logger.log(`Session ${session.id} msg ${serialized}`);
+  sessionState.websocket.send(serialized);
+  app.logger.log(`Session ${sessionState.id} msg sent at ${sentAt}`);
+  app.logger.log(`Session ${sessionState.id} msg ${serialized}`);
 };
 
 server.on(serverEvents.CONNECTION, startSession(app));
