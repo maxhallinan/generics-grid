@@ -64,10 +64,16 @@ _.floor2dPoints = (points) =>
   }), points);
 
 _.toPublicIds = (pointIds, points) =>
-  util.mapObj((point) => ({
-    ...point,
-    id: pointIds.privateToPublic[point.id],
-  }), points);
+  Object.values(points).reduce((acc, point) => {
+    const publicId = pointIds.privateToPublic[point.id];
+
+    acc[publicId] = {
+      ...point,
+      id: publicId,
+    };
+
+    return acc;
+  }, {});
 
 _.toPublic = util.compose(
   Object.values,

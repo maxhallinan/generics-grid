@@ -264,6 +264,28 @@ describe(`grid > points`, () => {
     });
   });
 
-  describe(`grid > points > toPublicIds`, () => {});
+  describe(`grid > points > toPublicIds`, () => {
+    const pointIds = points.createIds(ps);
+    const actual = points.toPublicIds(pointIds, ps);
+
+    test(`Replaces the private id with the corresponding public id.`, () => {
+      Object.entries(ps).forEach(([privateId, point1]) => {
+        const publicId = pointIds.privateToPublic[privateId];
+        const point2 = actual[publicId];
+        expect(point2.id).toBe(publicId);
+      });
+    });
+
+    test(`Maps each point.id without modifying any other values.`, () => {
+      Object.entries(ps).forEach(([privateId, point1]) => {
+        const publicId = pointIds.privateToPublic[privateId];
+        const point2 = actual[publicId];
+        const { id: id1, ...p1 } = point2
+        const { id: id2, ...p2 } = point2
+        expect(p1).toMatchObject(p2);
+      });
+    });
+  });
+
   describe(`grid > points > toPublic`, () => {});
 });
