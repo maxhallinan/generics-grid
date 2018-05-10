@@ -208,7 +208,62 @@ describe(`grid > points`, () => {
     });
   });
 
-  describe(`grid > points > floor2dPoints`, () => {});
+  describe(`grid > points > floor2dPoints`, () => {
+    const pointsWithFloatCoords = {
+      '1': {
+        id: '1',
+        coordinates: {
+          x: 1.123,
+          y: 2.01,
+        },
+      },
+      '2': {
+        id: '1',
+        coordinates: {
+          x: 2.111,
+          y: 3.312,
+        },
+      },
+      '3': {
+        id: '3',
+        coordinates: {
+          x: 3.71,
+          y: 4.9,
+        },
+      },
+    };
+
+    const actual = points.floor2dPoints(pointsWithFloatCoords);
+
+    const expected = {
+      '1': {
+        id: '1',
+        coordinates: {
+          x: 1,
+          y: 2,
+        },
+      },
+      '2': {
+        id: '1',
+        coordinates: {
+          x: 2,
+          y: 3,
+        },
+      },
+      '3': {
+        id: '3',
+        coordinates: {
+          x: 3,
+          y: 4,
+        },
+      },
+    };
+
+    test(`Floors each coordinate in a collection of 2d points.`, () => {
+      expect(actual).toMatchObject(expected);
+    });
+  });
+
   describe(`grid > points > toPublicIds`, () => {});
   describe(`grid > points > toPublic`, () => {});
 });
