@@ -111,12 +111,47 @@ describe(`grid > points`, () => {
     const actual = points.scaleToRange(newRange, oldRange, n);
     const expected = 12;
 
-    test(`Scales n to the expected value within the target range.`, () => {
+    test(`Scales n to the target range.`, () => {
       expect(actual).toBe(expected);
     });
   });
 
-  describe(`grid > points > scale2dCoordToRanges`, () => {});
+  describe(`grid > points > scale2dCoordToRanges`, () => {
+    const newRanges = {
+      x: [ 11, 20, ],
+      y: [ 11, 20, ],
+    };
+    const oldRanges = {
+      x: [ 1, 10, ],
+      y: [ 1, 10, ],
+    };
+    const coord = {
+      x: 1,
+      y: 2,
+    };
+    const actual = points.scale2dCoordToRanges(newRanges, oldRanges, coord);
+    const expected = {
+      x: 11,
+      y: 12,
+    };
+
+    test(`Returns a coordinate object.`, () => {
+      const actualKeys = Object.keys(actual);
+      const expectedKeys = [ `x`, `y`, ];
+      actualKeys.forEach((k) => {
+        expect(expectedKeys).toContain(k);
+      });
+    });
+
+    test(`Scales the x coordinate to the target range.`, () => {
+      expect(actual.x).toBe(expected.x);
+    });
+
+    test(`Scales the y coordinate to the target range.`, () => {
+      expect(actual.y).toBe(expected.y);
+    });
+  });
+
   describe(`grid > points > scale2dPointsToRanges`, () => {});
   describe(`grid > points > floor2dCoordinates`, () => {});
   describe(`grid > points > floor2dPoints`, () => {});
