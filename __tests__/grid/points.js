@@ -152,7 +152,47 @@ describe(`grid > points`, () => {
     });
   });
 
-  describe(`grid > points > scale2dPointsToRanges`, () => {});
+  describe(`grid > points > scale2dPointsToRanges`, () => {
+    const newRanges = {
+      x: [ 11, 20, ],
+      y: [ 11, 20, ],
+    };
+    const oldRanges = {
+      x: [ 1, 10, ],
+      y: [ 1, 10, ],
+    };
+    const actual = points.scale2dPointsToRanges(newRanges, oldRanges, ps);
+    const expected = {
+      '1': {
+        id: '1',
+        coordinates: {
+          x: 11,
+          y: 12,
+        },
+      },
+      '2': {
+        id: '2',
+        coordinates: {
+          x: 12,
+          y: 13,
+        },
+      },
+      '3': {
+        id: '3',
+        coordinates: {
+          x: 13,
+          y: 14,
+        },
+      },
+    };
+    test(
+      `Scales a collection of 2d points to the target 2d ranges.`,
+      () => {
+        expect(actual).toMatchObject(expected);
+      }
+    );
+  });
+
   describe(`grid > points > floor2dCoordinates`, () => {});
   describe(`grid > points > floor2dPoints`, () => {});
   describe(`grid > points > toPublicIds`, () => {});
