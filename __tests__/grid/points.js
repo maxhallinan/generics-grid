@@ -71,8 +71,35 @@ describe(`grid > points`, () => {
     });
   });
 
-  describe(`grid > points > createIds`, () => {});
+  describe(`grid > points > createIds`, () => {
+    const ids = points.createIds(ps);
+    test(
+      `Returns an object with the keys privateToPublic and publicToPrivate.`,
+      () => {
+        const actual = Object.keys(ids);
+        const expected = [ `privateToPublic`, `publicToPrivate`, ];
+        actual.forEach((k) => {
+          expect(expected).toContain(k);
+        });
+      }
+    );
+
+    test(
+      `privateToPublic and publicToPrivate are symmetrical mappings.`,
+      () => {
+        const { privateToPublic, publicToPrivate, } = ids;
+        Object.entries(privateToPublic).forEach(([ privateId, publicId, ]) => {
+          expect(privateId).toBe(publicToPrivate[publicId]);
+        });
+        Object.entries(publicToPrivate).forEach(([ publicId, privateId, ]) => {
+          expect(publicId).toBe(privateToPublic[privateId]);
+        });
+      }
+    );
+  });
+
   describe(`grid > points > scaleToRange`, () => {});
+
   describe(`grid > points > scale2dCoordToRanges`, () => {});
   describe(`grid > points > scale2dPointsToRanges`, () => {});
   describe(`grid > points > floor2dCoordinates`, () => {});
