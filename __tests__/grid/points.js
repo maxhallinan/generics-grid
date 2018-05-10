@@ -26,24 +26,30 @@ const ps = {
 
 describe(`grid > points`, () => {
   describe(`grid > points > rangeOf`, () => {
-    test(`Returns a pair of numbers representing the start and end of the range.`, () => {
-      const ns = [ 10, 1, 2, 7, 4, 5, 9, 1, ];
-      const expected = [1, 10];
-      const actual = points.rangeOf(ns);
-      expect(actual).toEqual(expected);
-    });
-  });
+    test(
+      `Returns a pair of numbers representing the start and end of the range.`,
+      () => {
+        const ns = [ 10, 1, 2, 7, 4, 5, 9, 1, ];
+        const expected = [1, 10];
+        const actual = points.rangeOf(ns);
+        expect(actual).toEqual(expected);
+      });
+    }
+  );
 
   describe(`grid > points > rangesOf2dPoints`, () => {
-    test(`Returns an object containing the ranges for the x and y dimensions.`, () => {
-      const expected = {
-        x: [ 1, 3, ],
-        y: [ 2, 4, ],
-      };
-      const actual = points.rangesOf2dPoints(ps);
+    test(
+      `Returns an object containing the ranges for the x and y dimensions.`,
+      () => {
+        const expected = {
+          x: [ 1, 3, ],
+          y: [ 2, 4, ],
+        };
+        const actual = points.rangesOf2dPoints(ps);
 
-      expect(actual).toEqual(expected);
-    });
+        expect(actual).toEqual(expected);
+      }
+    );
   });
 
   describe(`grid > points > privateToPublicIds`, () => {
@@ -98,7 +104,17 @@ describe(`grid > points`, () => {
     );
   });
 
-  describe(`grid > points > scaleToRange`, () => {});
+  describe(`grid > points > scaleToRange`, () => {
+    const oldRange = [1, 10];
+    const newRange = [11, 20];
+    const n = 2;
+    const actual = points.scaleToRange(newRange, oldRange, n);
+    const expected = 12;
+
+    test(`Scales n to the expected value within the target range.`, () => {
+      expect(actual).toBe(expected);
+    });
+  });
 
   describe(`grid > points > scale2dCoordToRanges`, () => {});
   describe(`grid > points > scale2dPointsToRanges`, () => {});
