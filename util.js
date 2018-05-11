@@ -5,6 +5,26 @@ _.compose = (...fns) => (...args) => {
   return fs.reduce((x, f) => f(x), f1(...args));
 };
 
+_.isObj = (x) => x !== null && typeof x === `object`;
+
+_.get = (propArr) => (fallback) => (src) =>  {
+  const go = (props, current) => {
+    const [ p, ...ps ] = props;
+
+    if (props.length < 1) {
+      return current;
+    }
+
+    if (_.isObj(current) && !current.hasOwnProperty(p)) {
+      return fallback;
+    }
+
+    return go(ps, current[p]);
+  };
+
+  return go(propArr, src);
+};
+
 _.head = (xs) => xs[0];
 
 _.keyBy = (f, xs) => xs.reduce(

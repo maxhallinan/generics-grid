@@ -13,17 +13,11 @@ _.stopIdToStationId = util.compose(
 );
 
 _.tripUpdateEntitiesToTripUpdates = (entities) => entities.map((entity) => ({
-  id:
-    entity.trip_update &&
-    entity.trip_update.trip &&
-    entity.trip_update.trip.trip_id ||
-    null,
-  currentStation:
-    entity.trip_update.stop_time_update &&
-    entity.trip_update.stop_time_update[0] &&
-    entity.trip_update.stop_time_update[0].stop_id &&
-    _.stopIdToStationId(entity.trip_update.stop_time_update[0].stop_id) ||
-    null,
+  id: util.get([ `trip_update`, `trip`, `trip_id`, ])(null)(entity),
+  currentStation: util.compose(
+    _.stopIdToStationId,
+    util.get([ `trip_update`, `stop_time_update`, 0, `stop_id`])(null),
+  )(entity),
 }));
 
 _.feedToTripUpdates = util.compose(
