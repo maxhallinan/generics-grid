@@ -4,7 +4,10 @@ const _ = module.exports;
 
 _.entityToTripUpdate = (entities) => entities;
 
-_.feedToTripUpdates = (feed) => feed;
+_.feedToTripUpdateEntities = util.compose(
+  (entities) => entities.filter((entity) => !!entity.trip_update),
+  (feed) => feed.entity
+);
 
 _.filterByTripUpdate = (entities) => entities;
 
