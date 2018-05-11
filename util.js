@@ -10,7 +10,7 @@ _.keyBy = (f, xs) => xs.reduce(
     acc[key] = x;
     return acc;
   },
-{});
+  {});
 
 _.mapObj = (f, obj) => Object.entries(obj).reduce((acc, [ k, v, ]) => {
   acc[k] = f(v);

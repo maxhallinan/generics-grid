@@ -9,7 +9,18 @@ _.feedToTripUpdateEntities = util.compose(
   (feed) => feed.entity
 );
 
-_.filterByTripUpdate = (entities) => entities;
+_.tripUpdateEntitiesToTripUpdates = (entities) => entities.map((entity) => ({
+  id:
+    entity.trip_update &&
+    entity.trip_update.trip &&
+    entity.trip_update.trip.trip_id ||
+    null,
+  currentStation:
+    entity.trip_update.stop_time_update &&
+    entity.trip_update.stop_time_update[0] &&
+    entity.trip_update.stop_time_update[0].stop_id ||
+    null,
+}));
 
 _.stopIdToStationId = util.compose(
   util.head,
