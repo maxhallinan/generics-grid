@@ -1,6 +1,9 @@
 const _ = module.exports;
 
-_.compose = (f, g) => (...args) => f(g(...args));
+_.compose = (...fns) => (...args) => {
+  const [ f1, ...fs ] = [ ...fns, ].reverse();
+  return fs.reduce((x, f) => f(x), f1(...args));
+};
 
 _.head = (xs) => xs[0];
 

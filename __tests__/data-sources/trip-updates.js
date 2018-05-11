@@ -23,10 +23,10 @@ describe(`services > tripUpdates`, () => {
         const actual = tripUpdates.tripUpdateEntitiesToTripUpdates(entities);
         const expected = [ {
           id: `065350_3..S01R`,
-          currentStation: `101N`,
+          currentStation: `101`,
         }, {
           id: `064700_3..N01R`,
-          currentStation: `135S`,
+          currentStation: `135`,
         }, ];
 
         expect(actual).toEqual(expect.arrayContaining(expected));
@@ -43,7 +43,7 @@ describe(`services > tripUpdates`, () => {
     });
   });
 
-  describe.skip(`services > tripUpdates > feedToTripUpdates`, () => {
+  describe(`services > tripUpdates > feedToTripUpdates`, () => {
     const updates = feed.entity.filter((entity) => entity.trip_update !== null);
     const actuals = tripUpdates.feedToTripUpdates(feed);
 
