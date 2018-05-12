@@ -5,6 +5,8 @@ _.compose = (...fns) => (...args) => {
   return fs.reduce((x, f) => f(x), f1(...args));
 };
 
+_.identity = (x) => x;
+
 _.isObj = (x) => x !== null && typeof x === `object`;
 
 _.get = (propArr) => (fallback) => (src) =>  {
@@ -34,6 +36,8 @@ _.keyBy = (f, xs) => xs.reduce(
     return acc;
   },
   {});
+
+_.map = (f) => (functor) => functor.map(f);
 
 _.mapObj = (f, obj) => Object.entries(obj).reduce((acc, [ k, v, ]) => {
   acc[k] = f(v);
