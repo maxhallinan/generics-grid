@@ -10,7 +10,7 @@ describe(`server > session`, () => {
         x_start: 10,
       };
       const expected = {
-        x: [ 10, defaultRanges.x[1] ],
+        x: [ 10, defaultRanges.x[1], ],
         y: defaultRanges.y,
       };
       const actual = session.toRanges(query, defaultRanges);
@@ -68,30 +68,30 @@ describe(`server > session`, () => {
 
   describe(`server > session > toPoints`, () => {
     const sessionRanges = {
-      x: [1, 10],
-      y: [11, 20],
+      x: [ 1, 10, ],
+      y: [ 11, 20, ],
     };
     const originalRanges = {
-      x: [1, 100],
-      y: [101, 200],
+      x: [ 1, 100, ],
+      y: [ 101, 200, ],
     };
     const originalPoints = {
       '1': {
-        id: '1',
+        id: `1`,
         coordinates: {
           x: 10,
           y: 110,
         },
       },
       '2': {
-        id: '2',
+        id: `2`,
         coordinates: {
           x: 20,
           y: 120,
         },
       },
       '3': {
-        id: '3',
+        id: `3`,
         coordinates: {
           x: 30,
           y: 130,
@@ -100,21 +100,21 @@ describe(`server > session`, () => {
     };
     const expected = {
       '1': {
-        id: '1',
+        id: `1`,
         coordinates: {
           x: 1,
           y: 11,
         },
       },
       '2': {
-        id: '2',
+        id: `2`,
         coordinates: {
           x: 2,
           y: 12,
         },
       },
       '3': {
-        id: '3',
+        id: `3`,
         coordinates: {
           x: 3,
           y: 13,

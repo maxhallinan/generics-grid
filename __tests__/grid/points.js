@@ -2,21 +2,21 @@ const points = require(`./../../grid/points`);
 
 const ps = {
   '1': {
-    id: '1',
+    id: `1`,
     coordinates: {
       x: 1,
       y: 2,
     },
   },
   '2': {
-    id: '2',
+    id: `2`,
     coordinates: {
       x: 2,
       y: 3,
     },
   },
   '3': {
-    id: '3',
+    id: `3`,
     coordinates: {
       x: 3,
       y: 4,
@@ -30,11 +30,11 @@ describe(`grid > points`, () => {
       `Returns a pair of numbers representing the start and end of the range.`,
       () => {
         const ns = [ 10, 1, 2, 7, 4, 5, 9, 1, ];
-        const expected = [1, 10];
+        const expected = [ 1, 10, ];
         const actual = points.rangeOf(ns);
         expect(actual).toEqual(expected);
       });
-    }
+  }
   );
 
   describe(`grid > points > rangesOf2dPoints`, () => {
@@ -71,7 +71,7 @@ describe(`grid > points`, () => {
     const privateToPublic = points.privateToPublicIds(ps);
     const publicToPrivate = points.publicToPrivateIds(privateToPublic);
     test(`Creates an entry in the lookup table for each public id.`, () => {
-      Object.entries(privateToPublic).forEach(([privateId, publicId]) => {
+      Object.entries(privateToPublic).forEach(([ privateId, publicId, ]) => {
         expect(publicToPrivate[publicId]).toBe(privateId);
       });
     });
@@ -105,8 +105,8 @@ describe(`grid > points`, () => {
   });
 
   describe(`grid > points > scaleToRange`, () => {
-    const oldRange = [1, 10];
-    const newRange = [11, 20];
+    const oldRange = [ 1, 10, ];
+    const newRange = [ 11, 20, ];
     const n = 2;
     const actual = points.scaleToRange(newRange, oldRange, n);
     const expected = 12;
@@ -164,21 +164,21 @@ describe(`grid > points`, () => {
     const actual = points.scale2dPointsToRanges(newRanges, oldRanges, ps);
     const expected = {
       '1': {
-        id: '1',
+        id: `1`,
         coordinates: {
           x: 11,
           y: 12,
         },
       },
       '2': {
-        id: '2',
+        id: `2`,
         coordinates: {
           x: 12,
           y: 13,
         },
       },
       '3': {
-        id: '3',
+        id: `3`,
         coordinates: {
           x: 13,
           y: 14,
@@ -211,21 +211,21 @@ describe(`grid > points`, () => {
   describe(`grid > points > floor2dPoints`, () => {
     const pointsWithFloatCoords = {
       '1': {
-        id: '1',
+        id: `1`,
         coordinates: {
           x: 1.123,
           y: 2.01,
         },
       },
       '2': {
-        id: '1',
+        id: `1`,
         coordinates: {
           x: 2.111,
           y: 3.312,
         },
       },
       '3': {
-        id: '3',
+        id: `3`,
         coordinates: {
           x: 3.71,
           y: 4.9,
@@ -237,21 +237,21 @@ describe(`grid > points`, () => {
 
     const expected = {
       '1': {
-        id: '1',
+        id: `1`,
         coordinates: {
           x: 1,
           y: 2,
         },
       },
       '2': {
-        id: '1',
+        id: `1`,
         coordinates: {
           x: 2,
           y: 3,
         },
       },
       '3': {
-        id: '3',
+        id: `3`,
         coordinates: {
           x: 3,
           y: 4,
@@ -269,7 +269,7 @@ describe(`grid > points`, () => {
     const actual = points.toPublicIds(pointIds, ps);
 
     test(`Replaces the private id with the corresponding public id.`, () => {
-      Object.entries(ps).forEach(([privateId, point1]) => {
+      Object.entries(ps).forEach(([ privateId, ]) => {
         const publicId = pointIds.privateToPublic[privateId];
         const point2 = actual[publicId];
         expect(point2.id).toBe(publicId);
@@ -277,11 +277,13 @@ describe(`grid > points`, () => {
     });
 
     test(`Maps each point.id without modifying any other values.`, () => {
-      Object.entries(ps).forEach(([privateId, point1]) => {
+      Object.entries(ps).forEach(([ privateId, ]) => {
         const publicId = pointIds.privateToPublic[privateId];
         const point2 = actual[publicId];
-        const { id: id1, ...p1 } = point2
-        const { id: id2, ...p2 } = point2
+        // eslint-disable-next-line no-unused-vars
+        const { id: id1, ...p1 } = point2;
+        // eslint-disable-next-line no-unused-vars
+        const { id: id2, ...p2 } = point2;
         expect(p1).toMatchObject(p2);
       });
     });
@@ -299,7 +301,9 @@ describe(`grid > points`, () => {
       actual.forEach((point1) => {
         const privateId = pointIds.publicToPrivate[point1.id];
         const point2 = ps[privateId];
+        // eslint-disable-next-line no-unused-vars
         const { id: id1, ...p1 } = point1;
+        // eslint-disable-next-line no-unused-vars
         const { id: id2, ...p2 } = point2;
         expect(p1).toMatchObject(p2);
       });
