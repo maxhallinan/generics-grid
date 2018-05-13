@@ -24,6 +24,7 @@ _.privateToPublicIds = (points) => util.mapObj(() => uuidv1(), points);
 _.publicToPrivateIds = (privateToPublic) =>
   Object.entries(privateToPublic).reduce((acc, [ internalId, publicId, ]) => {
     acc[publicId] = internalId;
+
     return acc;
   }, {});
 

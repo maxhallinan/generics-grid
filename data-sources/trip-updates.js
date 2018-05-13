@@ -23,6 +23,7 @@ const toTripUpdate = (entity) => {
   const tripUpdate = id && currentStation
     ? { id, currentStation, }
     : null;
+
   return tripUpdate;
 };
 

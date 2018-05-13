@@ -35,6 +35,7 @@ const decodeFeed = (decoded, [ feedId, buf, ]) => {
   } catch (err) {
     decoded[feedId] = null;
   }
+
   return decoded;
 };
 
@@ -49,5 +50,6 @@ _.filterNull = (feeds) =>
     if (feed) {
       filtered[id] = feed;
     }
+
     return filtered;
   }, {});

@@ -6,12 +6,14 @@ const _ = module.exports;
 const privateToPublicIds = (privateIds) =>
   privateIds.reduce((acc, privateId) => {
     acc[privateId] = uuidv1();
+
     return acc;
   }, {});
 
 const publicToPrivateIds = (privateToPublic) =>
   Object.entries(privateToPublic).reduce((acc, [privateId, publicId]) => {
     acc[publicId] = privateId;
+
     return acc;
   }, {});
 
