@@ -2,6 +2,7 @@ const protobuf = require(`protobufjs`);
 const queryString = require(`querystring`);
 const request = require(`request-promise-native`);
 const mtaGtfsDescriptor = require(`./../proto/nyct-subway.json`);
+const util = require(`./../util`);
 
 const _ = module.exports;
 
@@ -37,9 +38,7 @@ const decodeFeed = (decoded, [ feedId, buf, ]) => {
   return decoded;
 };
 
-const decodeFeeds = (feeds) =>
-  feeds
-    .reduce(decodeFeed, {});
+const decodeFeeds = (feeds) => feeds.reduce(decodeFeed, {});
 
 _.fetchAll = (config, feedIds) =>
   getFeeds(config, feedIds)

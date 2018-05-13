@@ -45,3 +45,5 @@ _.mapObj = (f, obj) => Object.entries(obj).reduce((acc, [ k, v, ]) => {
 }, {});
 
 _.toInt = (x) => parseInt(x, 10);
+
+_.prop = (x) => (obj) => obj[x];

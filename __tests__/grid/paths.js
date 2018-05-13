@@ -98,7 +98,7 @@ describe(`grid > paths`, () => {
     );
   });
 
-  describe(`grid > paths > tripUpdatesToPaths`, () => {
+  describe(`grid > paths > fromTripUpdates`, () => {
     const pointIds = {
       privateToPublic: {
         'private-1': `public-1`,
@@ -139,7 +139,7 @@ describe(`grid > paths`, () => {
         points: [ `public-2`, ],
       },
     };
-    const updatedCache = paths.tripUpdatesToCache(
+    const updatedCache = paths.fromTripUpdates(
       pointIds,
       pathIds,
       tripUpdates,
