@@ -36,3 +36,20 @@ _.updateIds = (privateIds, pathIds) =>
 
     return acc;
   }, { privateToPublic: {}, publicToPrivate: {}, });
+
+_.tripUpdatesToCache = (pointIds, pathIds, tripUpdates, cache) =>
+  Object.values(tripUpdates).reduce((acc, tripUpdate) => {
+    const publicId = pathIds.privateToPublic[tripUpdate.id];
+    const cached = cache[publicId] || {};
+    const pointId = pointIds.privateToPublic[tripUpdate.currentStation];
+    const points = cached.points
+      ? [...cached.points, pointId ]
+      : [pointId];
+
+    acc[publicId] = {
+      id: publicId,
+      points,
+    };
+
+    return acc;
+  }, {});
