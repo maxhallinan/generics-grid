@@ -6,6 +6,7 @@
   "scripts": {
     "coverage": "cat ./coverage/lcov.info | coveralls",
     "lint": "./node_modules/.bin/eslint ./*.js ./__tests__/**/*.js --fix",
+    "protobuf:compile": "pbjs ./proto/nyct-subway.proto -o ./proto/nyct-subway.json",
     "start": "node index.js",
     "test": "cross-env NODE_ENV=test jest --coverage",
     "test:watch": "cross-env NODE_ENV=test jest --watch"
@@ -14,6 +15,9 @@
   "license": "ISC",
   "dependencies": {
     "dotenv": "^5.0.1",
+    "protobufjs": "^6.8.6",
+    "request": "^2.85.0",
+    "request-promise-native": "^1.0.5",
     "uuid": "^3.2.1",
     "ws": "^5.1.1"
   },

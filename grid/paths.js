@@ -43,8 +43,8 @@ _.tripUpdatesToCache = (pointIds, pathIds, tripUpdates, cache) =>
     const cached = cache[publicId] || {};
     const pointId = pointIds.privateToPublic[tripUpdate.currentStation];
     const points = cached.points
-      ? [...cached.points, pointId ]
-      : [pointId];
+      ? [ ...cached.points, pointId, ]
+      : [ pointId, ];
 
     acc[publicId] = {
       id: publicId,

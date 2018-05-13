@@ -8,7 +8,7 @@ describe(`services > tripUpdates`, () => {
       () => {
         const actual = tripUpdates.feedToTripUpdateEntities(feed);
         const expected =
-          feed.entity.filter((entity) => entity.trip_update !== null);
+          feed.entity.filter((entity) => entity.tripUpdate !== null);
 
         expect(actual).toEqual(expect.arrayContaining(expected));
       }
@@ -41,15 +41,21 @@ describe(`services > tripUpdates`, () => {
       const expected = `123`;
       expect(actual).toBe(expected);
     });
+    test(`Only trims the last character from the stop id.`, () => {
+      const stopId = `M3SFOO123S`;
+      const actual = tripUpdates.stopIdToStationId(stopId);
+      const expected = `M3SFOO123`;
+      expect(actual).toBe(expected);
+    });
   });
 
-  describe(`services > tripUpdates > feedToTripUpdates`, () => {
-    const updates = feed.entity.filter((entity) => entity.trip_update !== null);
-    const actuals = tripUpdates.feedToTripUpdates(feed);
+  describe(`services > tripUpdates > fromMtaFeed`, () => {
+    const updates = feed.entity.filter((entity) => entity.tripUpdate !== null);
+    const actuals = tripUpdates.fromMtaFeed(feed);
 
-    test(`Returns a table of trip updates keyed by trip_id.`, () => {
+    test(`Returns a table of trip updates keyed by tripId.`, () => {
       updates.forEach((update) => {
-        const tripId = update.trip_update.trip.trip_id;
+        const tripId = update.tripUpdate.trip.tripId;
         const actual = actuals[tripId];
         const actualId = actual.id;
         const actualKeys = Object.keys(actual);
@@ -62,8 +68,8 @@ describe(`services > tripUpdates`, () => {
 
     test(`Returns the expected station id.`, () => {
       updates.forEach((update) => {
-        const tripId = update.trip_update.trip.trip_id;
-        const stopId = update.trip_update.stop_time_update[0].stop_id;
+        const tripId = update.tripUpdate.trip.tripId;
+        const stopId = update.tripUpdate.stopTimeUpdate[0].stopId;
         const actual = actuals[tripId].currentStation;
         const expected = tripUpdates.stopIdToStationId(stopId);
         expect(actual).toBe(expected);

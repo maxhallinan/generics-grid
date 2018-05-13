@@ -14,7 +14,7 @@ with open("./data/stations.csv") as source_file, \
     points = {}
 
     for r in reader:
-        id = r[0]
+        id = r[2]
         x = abs(float(r[9]))
         y = abs(float(r[10]))
 

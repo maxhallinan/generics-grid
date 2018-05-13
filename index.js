@@ -3,21 +3,33 @@ const EventEmitter = require(`events`);
 const url = require(`url`);
 const uuidv1 = require(`uuid/v1`);
 const WebSocket = require(`ws`);
+
 const dimensions = require(`./grid/dimensions`);
 const logger = require(`./logger`);
+const mtaFeeds = require(`./data-sources/mta-feeds`);
 const originalPoints = require(`./data/points.json`);
 const points = require(`./grid/points`);
 const session = require(`./server/session`);
+const tripUpdates = require(`./data-sources/trip-updates`);
 const util = require(`./util`);
 
-// data source
 const pathEvents = {
   DATA: `data`,
 };
 const emitter = new EventEmitter();
+const feedsConfig = {
+  apiKey: process.env[`GENERICS_GRID_MTA_API_KEY`],
+  urlBase: process.env[`GENERICS_GRID_MTA_ROOT_URL`],
+};
+const feedIds = process.env[`GENERICS_GRID_MTA_FEED_IDS`].split(`,`);
 setInterval(() => {
-  emitter.emit(pathEvents.DATA, { foo: Date.now(), });
-}, 2000);
+  mtaFeeds.fetchAll(feedsConfig, feedIds)
+    .then(mtaFeeds.filterNull)
+    .then(tripUpdates.fromMtaFeeds)
+    .then((updates) => {
+      emitter.emit(pathEvents.DATA, { tripUpdates: updates, });
+    });
+}, 1000);
 
 // server
 const serverEvents = {
@@ -38,7 +50,7 @@ const defaultRanges = dimensions.to2dRanges([
 ]);
 
 const app = {
-  defaults: {
+  default_: {
     ranges: defaultRanges,
   },
   logger,
@@ -62,7 +74,7 @@ const startSession = (app) => (websocket, request) => {
 
   const { query, } = url.parse(request.url, true);
 
-  const sessionRanges = session.toRanges(query, app.defaults.ranges);
+  const sessionRanges = session.toRanges(query, app.default_.ranges);
 
   const sessionDimensions = dimensions.to2d(
     sessionRanges.x,
