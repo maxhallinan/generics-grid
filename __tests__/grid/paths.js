@@ -113,10 +113,12 @@ describe(`grid > paths`, () => {
       privateToPublic: {
         'private-1': `public-1`,
         'private-3': `public-3`,
+        'private-4': `public-4`,
       },
       publicToPrivate: {
         'public-1': `private-1`,
         'public-3': `private-3`,
+        'public-4': `private-4`,
       },
     };
     const tripUpdates = {
@@ -128,6 +130,10 @@ describe(`grid > paths`, () => {
         id: `private-3`,
         currentStation: `private-2`,
       },
+      'private-4': {
+        id: `private-4`,
+        currentStation: `private-2`,
+      },
     };
     const cache = {
       'public-1': {
@@ -136,6 +142,10 @@ describe(`grid > paths`, () => {
       },
       'public-2': {
         id: `public-2`,
+        points: [ `public-2`, ],
+      },
+      'public-4': {
+        id: `public-4`,
         points: [ `public-2`, ],
       },
     };
@@ -175,6 +185,22 @@ describe(`grid > paths`, () => {
       expect(updatedCache[`public-1`].points).toEqual(expected1);
       expect(updatedCache[`public-3`].points).toEqual(expected2);
     });
+
+    test(`Appends the point id to the points array.`, () => {
+      const expected1 = expect.arrayContaining([ `public-1`, `public-2`, ]);
+      const expected2 = expect.arrayContaining([ `public-2`, ]);
+      expect(updatedCache[`public-1`].points).toEqual(expected1);
+      expect(updatedCache[`public-3`].points).toEqual(expected2);
+    });
+
+    test(
+      `Does not append a new point when it is the same as a cached point.`,
+      () => {
+        const expected = expect.arrayContaining([ `public-2`, ]);
+        expect(updatedCache[`public-4`].points).toEqual(expected);
+        expect(updatedCache[`public-4`].points.length).toBe(1);
+      }
+    );
 
     test(`Removes cached paths that are not in the update set.`, () => {
       expect(updatedCache[`public-2`]).toBe(undefined);

@@ -44,9 +44,14 @@ _.fromTripUpdates = (pointIds, pathIds, tripUpdates, cache) =>
     const publicId = pathIds.privateToPublic[tripUpdate.id];
     const cached = cache[publicId] || {};
     const pointId = pointIds.privateToPublic[tripUpdate.currentStation];
-    const points = cached.points
-      ? [ ...cached.points, pointId, ]
-      : [ pointId, ];
+    let points = cached.points || [];
+    const isDuplicate = points.indexOf(pointId) !== -1;
+
+    if (!isDuplicate) {
+      points = cached.points
+        ? [ ...cached.points, pointId, ]
+        : [ pointId, ];
+    }
 
     acc[publicId] = {
       id: publicId,

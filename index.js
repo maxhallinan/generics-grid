@@ -30,8 +30,8 @@ setInterval(() => {
     .then((updates) => {
       emitter.emit(pathEvents.DATA, { tripUpdates: updates, });
     })
-    .catch((err) => console.log(err));
-}, 1000);
+    .catch((err) => logger.log(err));
+}, 10000);
 
 // server
 const serverEvents = {
@@ -121,15 +121,13 @@ const sendMsg = (app, sessionState) => ({ tripUpdates, }) => {
   const sentAt = Date.now();
   const privatePathIds = Object.values(tripUpdates).reduce((acc, updates) => {
     if (updates) {
-
       return [ ...acc, ...Object.values(updates), ];
     }
     return acc;
   }, []).map(({ id, }) => id);
   sessionState.pathIds = paths.updateIds(privatePathIds, sessionState.pathIds);
-  sessionState.paths = Object.entries(tripUpdates).reduce((acc, [ privateId, updates, ]) => {
-    const publicId = sessionState.pathIds.privateToPublic[privateId];
-    const cached = sessionState.paths[publicId];
+  sessionState.paths = Object.entries(tripUpdates).reduce((acc, [ feedId, updates, ]) => {
+    const cached = sessionState.paths[feedId];
 
     if (updates) {
       const ps = paths.fromTripUpdates(
@@ -138,34 +136,19 @@ const sendMsg = (app, sessionState) => ({ tripUpdates, }) => {
         updates,
         cached || {}
       );
-      acc[publicId] = ps;
+      acc[feedId] = ps;
     } else {
-      acc[publicId] = cached ? cached : null;
+      acc[feedId] = cached ? cached : null;
     }
 
     return acc;
   }, {});
-  // sessionState.paths = Object.entries(sessionState.paths).reduce((acc, [ id, cachedPaths, ]) => {
-  //   const update = tripUpdates[id];
-
-  //   acc[id] = update
-  //     ? paths.fromTripUpdates(
-  //         app.points.ids,
-  //         sessionState.pathIds,
-  //         tripUpdates,
-  //         cachedPaths
-  //       )
-  //     : cachedPaths;
-
-  //   return acc;
-  // }, {});
   const pathsArr = Object.values(sessionState.paths).reduce((acc, ps) => {
     if (ps) {
       return [ ...acc, ...Object.values(ps), ];
     }
     return acc;
-  }, [])
-  console.log(pathsArr);
+  }, []);
   const msg = {
     paths: pathsArr,
     points: points.toPublic(app.points.ids, sessionState.points),
@@ -174,8 +157,7 @@ const sendMsg = (app, sessionState) => ({ tripUpdates, }) => {
   };
   const serialized = JSON.stringify(msg);
   sessionState.websocket.send(serialized);
-  // app.logger.log(`Session ${sessionState.id} msg sent at ${sentAt}`);
-  // app.logger.log(`Session ${sessionState.id} msg ${serialized}`);
+  app.logger.log(`Session ${sessionState.id} msg sent at ${sentAt}`);
 };
 
 server.on(serverEvents.CONNECTION, startSession(app));
