@@ -28,7 +28,7 @@ describe(`grid > paths`, () => {
     );
 
     test(
-      `Returns a mapping to private id for public id.`,
+      `Returns a mapping to private id for each public id.`,
       () => {
         const actual = Object.values(pathIds.publicToPrivate);
         expect(actual).toEqual(expect.arrayContaining(privateIds));
@@ -186,15 +186,8 @@ describe(`grid > paths`, () => {
       expect(updatedCache[`public-3`].points).toEqual(expected2);
     });
 
-    test(`Appends the point id to the points array.`, () => {
-      const expected1 = expect.arrayContaining([ `public-1`, `public-2`, ]);
-      const expected2 = expect.arrayContaining([ `public-2`, ]);
-      expect(updatedCache[`public-1`].points).toEqual(expected1);
-      expect(updatedCache[`public-3`].points).toEqual(expected2);
-    });
-
     test(
-      `Does not append a new point when it is the same as a cached point.`,
+      `Does not append a new point when it is a duplicate of a cached point.`,
       () => {
         const expected = expect.arrayContaining([ `public-2`, ]);
         expect(updatedCache[`public-4`].points).toEqual(expected);
@@ -373,20 +366,33 @@ describe(`grid > paths`, () => {
     test(`Removes cached paths that are not in a feed update.`, () => {});
   });
 
-  describe.skip(`grid > paths > toPublic`, () => {
-    const paths = {
-      'path-public-1': {
-        id: 'path-public-1',
-        points: ['point-public-1'],
+  describe(`grid > paths > toPublic`, () => {
+    const ps = {
+      'feed-1': {
+        'path-public-1': {
+          id: 'path-public-1',
+          points: ['point-public-1'],
+        },
+        'path-public-2': {
+          id: 'path-public-2',
+          points: ['point-public-2', 'point-public-3'],
+        },
       },
-      'path-public-2': {
-        id: 'path-public-2',
-        points: ['point-public-2', 'point-public-3'],
-      },
-      'path-public-3': {
-        id: 'path-public-3',
-        points: ['point-public-4'],
+      'feed-2': {
+        'path-public-3': {
+          id: 'path-public-3',
+          points: ['point-public-4'],
+        },
       },
     };
+    test(`Combines the paths for each feed to a flat array of paths.`, () => {
+      const actual = paths.toPublic(ps);
+      const expected = expect.arrayContaining([
+        ps['feed-1']['path-public-1'],
+        ps['feed-1']['path-public-2'],
+        ps['feed-2']['path-public-3'],
+      ]);
+      expect(actual).toEqual(expected);
+    });
   });
 });
