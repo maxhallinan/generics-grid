@@ -206,4 +206,187 @@ describe(`grid > paths`, () => {
       expect(updatedCache[`public-2`]).toBe(undefined);
     });
   });
+
+  describe(`grid > paths > updateIdsFromFeeds`, () => {
+    const feeds1 = {
+      'feed-1': {
+        'tripupdate-private-1': {
+          id: 'tripupdate-private-1',
+          currentStation: 'point-private-1'
+        },
+      },
+      'feed-2': {
+        'tripupdate-private-2': {
+          id: 'tripupdate-private-2',
+          currentStation: 'point-private-2'
+        },
+      },
+      'feed-3': null,
+    };
+    const feeds2 = {
+      'feed-2': {
+        'tripupdate-private-2': {
+          id: 'tripupdate-private-2',
+          currentStation: 'point-private-3'
+        },
+      },
+      'feed-3': {
+        'tripupdate-private-3': {
+          id: 'tripupdate-private-3',
+          currentStation: 'point-private-4'
+        },
+      },
+    };
+    const emptyIds = {
+      privateToPublic: {},
+      publicToPrivate: {},
+    };
+    const pathIds = paths.updateIdsFromFeeds(feeds1, emptyIds);
+    const updatedPathIds = paths.updateIdsFromFeeds(feeds2, pathIds);
+
+    test(`Adds a new public/private id pair for a new trip update.`, () => {
+      const privateId = `tripupdate-private-3`;
+      const publicId = updatedPathIds.privateToPublic[privateId];
+      const expected = updatedPathIds.publicToPrivate[publicId];
+      expect(publicId).toBeTruthy();
+      expect(expected).toBe(privateId);
+    });
+
+    test(`Keeps a public/private id pair that is not in the update.`, () => {
+      const privateId = `tripupdate-private-1`;
+      const publicId = pathIds.privateToPublic[privateId];
+      const actual1 = updatedPathIds.privateToPublic[privateId];
+      const actual2 = updatedPathIds.publicToPrivate[actual1];
+      expect(actual1).toBe(publicId);
+      expect(actual2).toBe(privateId);
+    });
+
+    test(
+      `Keeps the same new public id for an existing private id.`,
+      () => {
+        const expected = pathIds.privateToPublic[`tripupdate-private-2`];
+        const actual = updatedPathIds.privateToPublic[`tripupdate-private-2`];
+        expect(actual).toBe(expected);
+      }
+    );
+  });
+
+  describe.skip(`grid > paths > updateFromFeeds`, () => {
+    const feeds1 = {
+      'feed-1': {
+        'tripupdate-private-1': {
+          id: 'tripupdate-private-1',
+          currentStation: 'point-private-1'
+        },
+        'tripupdate-private-2': {
+          id: 'tripupdate-private-2',
+          currentStation: 'point-private-2'
+        }
+      },
+      'feed-2': {
+        'tripupdate-private-3': {
+          id: 'tripupdate-private-3',
+          currentStation: 'point-private-3'
+        },
+      },
+      'feed-3': null,
+    };
+    const feeds2 = {
+      'feed-1': {
+        'tripupdate-private-1': {
+          id: 'tripupdate-private-1',
+          currentStation: 'point-private-5'
+        },
+      },
+      'feed-2': null,
+      'feed-3': {
+        'tripupdate-private-4': {
+          id: 'tripupdate-private-4',
+          currentStation: 'point-private-6'
+        },
+      },
+    };
+    const pointIds = {
+      privateToPublic: {
+        'point-private-1': 'point-public-1',
+        'point-private-2': 'point-public-2',
+        'point-private-3': 'point-public-3',
+        'point-private-4': 'point-public-4',
+        'point-private-5': 'point-public-5',
+        'point-private-6': 'point-public-6',
+        'point-private-7': 'point-public-7',
+      },
+      publicToPrivate: {
+        'point-public-1': 'point-private-1',
+        'point-public-2': 'point-private-2',
+        'point-public-3': 'point-private-3',
+        'point-public-4': 'point-private-4',
+        'point-public-5': 'point-private-5',
+        'point-public-6': 'point-private-6',
+        'point-public-7': 'point-private-7',
+      },
+    };
+    const pathIds = {
+      privateToPublic: {
+        'tripupdate-private-1': 'path-public-1',
+        'tripupdate-private-2': 'path-public-2',
+        'tripupdate-private-3': 'path-public-3',
+        'tripupdate-private-4': 'path-public-4',
+      },
+      publicToPrivate: {
+        'path-public-1': 'tripupdate-private-1',
+        'path-public-2': 'tripupdate-private-2',
+        'path-public-3': 'tripupdate-private-3',
+        'path-public-4': 'tripupdate-private-4',
+      },
+    };
+    const pathsCached = {
+      'feed-1': {
+        'path-public-1': {
+          id: 'path-public-1',
+          points: [ 'point-public-7', ],
+        },
+        'path-public-2': {
+          id: 'path-public-2',
+          points: [],
+        },
+      },
+      'feed-2': {
+        'path-public-3': {
+          id: 'path-public-3',
+          points: [],
+        },
+      },
+      'feed-3': {
+        'path-public-4': {
+          id: 'path-public-3',
+          points: [],
+        },
+      },
+    };
+    test(`Keys paths by feed id.`, () => {});
+    test(`Caches every path in a feed update.`, () => {});
+    test(`Creates a new path if there is not cached path.`, () => {});
+    test(`Does not overwrite a cached path.`, () => {});
+    test(`Appends a new point to cached points.`, () => {});
+    test(`Does not appends a duplicate point.`, () => {});
+    test(`Removes cached paths that are not in a feed update.`, () => {});
+  });
+
+  describe.skip(`grid > paths > toPublic`, () => {
+    const paths = {
+      'path-public-1': {
+        id: 'path-public-1',
+        points: ['point-public-1'],
+      },
+      'path-public-2': {
+        id: 'path-public-2',
+        points: ['point-public-2', 'point-public-3'],
+      },
+      'path-public-3': {
+        id: 'path-public-3',
+        points: ['point-public-4'],
+      },
+    };
+  });
 });

@@ -119,38 +119,23 @@ const endSession = (app, sessionState, pathsListener) => () => {
 
 const sendMsg = (app, sessionState) => ({ tripUpdates, }) => {
   const sentAt = Date.now();
-  const privatePathIds = Object.values(tripUpdates).reduce((acc, updates) => {
-    if (updates) {
-      return [ ...acc, ...Object.values(updates), ];
-    }
-    return acc;
-  }, []).map(({ id, }) => id);
-  sessionState.pathIds = paths.updateIds(privatePathIds, sessionState.pathIds);
-  sessionState.paths = Object.entries(tripUpdates).reduce((acc, [ feedId, updates, ]) => {
-    const cached = sessionState.paths[feedId];
 
-    if (updates) {
-      const ps = paths.fromTripUpdates(
-        app.points.ids,
-        sessionState.pathIds,
-        updates,
-        cached || {}
-      );
-      acc[feedId] = ps;
-    } else {
-      acc[feedId] = cached ? cached : null;
-    }
+  sessionState.pathIds = paths.updateIdsFromFeeds(
+    tripUpdates,
+    sessionState.pathIds
+  );
 
-    return acc;
-  }, {});
-  const pathsArr = Object.values(sessionState.paths).reduce((acc, ps) => {
-    if (ps) {
-      return [ ...acc, ...Object.values(ps), ];
-    }
-    return acc;
-  }, []);
+  sessionState.paths = paths.updateFromFeeds(
+    tripUpdates,
+    app.points.ids,
+    sessionState.pathIds,
+    sessionState.paths
+  );
+
+  const publicPaths = paths.toPublic(sessionState.paths);
+
   const msg = {
-    paths: pathsArr,
+    paths: publicPaths,
     points: points.toPublic(app.points.ids, sessionState.points),
     dimensions: sessionState.dimensions,
     sentAt,

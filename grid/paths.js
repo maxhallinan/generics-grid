@@ -60,3 +60,52 @@ _.fromTripUpdates = (pointIds, pathIds, tripUpdates, cache) =>
 
     return acc;
   }, {});
+
+const feedsToPrivateIds = (feeds) =>
+  Object.values(feeds).reduce((acc, updates) => {
+    if (updates) {
+      return [ ...acc, ...Object.values(updates), ];
+    }
+    return acc;
+  }, []).map(({ id, }) => id);
+
+_.updateIdsFromFeeds = (feeds, pathIds) =>  {
+  const currentPrivateIds = Object.keys(pathIds.privateToPublic);
+  const feedPrivateIds = feedsToPrivateIds(feeds);
+  const nextPrivateIds = feedPrivateIds.reduce((acc, id) => {
+    if (acc.indexOf(id) === -1) {
+      acc.push(id);
+    }
+
+    return acc;
+  }, [ ...currentPrivateIds, ]);
+
+  return _.updateIds(nextPrivateIds, pathIds);
+};
+
+_.updateFromFeeds = (feeds, pointIds, pathIds, paths) =>
+  Object.entries(feeds).reduce((acc, [ feedId, updates, ]) => {
+    const cached = paths[feedId];
+
+    if (updates) {
+      const ps = _.fromTripUpdates(
+        pointIds,
+        pathIds,
+        updates,
+        cached || {}
+      );
+      acc[feedId] = ps;
+    } else {
+      acc[feedId] = cached ? cached : null;
+    }
+
+    return acc;
+  }, {});
+
+_.toPublic = (paths) =>
+  Object.values(paths).reduce((acc, ps) => {
+    if (ps) {
+      return [ ...acc, ...Object.values(ps), ];
+    }
+    return acc;
+  }, []);
