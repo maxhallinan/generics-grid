@@ -411,30 +411,48 @@ describe(`grid > paths`, () => {
   });
 
   describe(`grid > paths > toPublic`, () => {
-    const ps = {
-      'feed-1': {
-        'path-public-1': {
-          id: `path-public-1`,
-          points: [ `point-public-1`, ],
-        },
-        'path-public-2': {
-          id: `path-public-2`,
-          points: [ `point-public-2`, `point-public-3`, ],
-        },
-      },
-      'feed-2': {
-        'path-public-3': {
-          id: `path-public-3`,
-          points: [ `point-public-4`, ],
-        },
-      },
-    };
     test(`Combines the paths for each feed to a flat array of paths.`, () => {
+      const ps = {
+        'feed-1': {
+          'path-public-1': {
+            id: `path-public-1`,
+            points: [ `point-public-1`, ],
+          },
+          'path-public-2': {
+            id: `path-public-2`,
+            points: [ `point-public-2`, `point-public-3`, ],
+          },
+        },
+        'feed-2': {
+          'path-public-3': {
+            id: `path-public-3`,
+            points: [ `point-public-4`, ],
+          },
+        },
+      };
       const actual = paths.toPublic(ps);
       const expected = expect.arrayContaining([
         ps[`feed-1`][`path-public-1`],
         ps[`feed-1`][`path-public-2`],
         ps[`feed-2`][`path-public-3`],
+      ]);
+      expect(actual).toEqual(expected);
+    });
+
+    test(`Filters null feeds.`, () => {
+      const ps = {
+        'feed-1': null,
+        'feed-2': null,
+        'feed-3': {
+          'path-public-1': {
+            id: 'path-public-1',
+            points: [ 'point-public-1', ],
+          }
+        }
+      };
+      const actual = paths.toPublic(ps);
+      const expected = expect.arrayContaining([
+        ps['feed-3']['path-public-1'],
       ]);
       expect(actual).toEqual(expected);
     });

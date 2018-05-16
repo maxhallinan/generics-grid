@@ -9,6 +9,8 @@ _.identity = (x) => x;
 
 _.isObj = (x) => x !== null && typeof x === `object`;
 
+_.flatten = (arr) => arr.reduce((acc, xs) => [ ...acc, ...xs, ], []);
+
 _.get = (propArr) => (fallback) => (src) =>  {
   const go = (props, current) => {
     const [ p, ...ps ] = props;

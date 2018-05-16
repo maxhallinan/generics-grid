@@ -38,4 +38,6 @@ _.fromMtaFeed = util.compose(
   _.feedToTripUpdateEntities
 );
 
-_.fromMtaFeeds = util.mapObj.bind(null, _.fromMtaFeed);
+_.fromMtaFeeds = (feeds) => util.mapObj((feed) => (
+  feed ? _.fromMtaFeed(feed) : null
+), feeds);

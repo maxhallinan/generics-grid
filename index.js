@@ -25,7 +25,6 @@ const feedsConfig = {
 const feedIds = process.env[`GENERICS_GRID_MTA_FEED_IDS`].split(`,`);
 setInterval(() => {
   mtaFeeds.fetchAll(feedsConfig, feedIds)
-    .then(mtaFeeds.filterNull)
     .then(tripUpdates.fromMtaFeeds)
     .then((updates) => {
       emitter.emit(pathEvents.DATA, { tripUpdates: updates, });
@@ -135,6 +134,7 @@ const sendMsg = (app, sessionState) => ({ tripUpdates, }) => {
   const publicPaths = paths.toPublic(sessionState.paths);
 
   const msg = {
+    tripUpdates,
     paths: publicPaths,
     points: points.toPublic(app.points.ids, sessionState.points),
     dimensions: sessionState.dimensions,

@@ -102,10 +102,6 @@ _.updateFromFeeds = (feeds, pointIds, pathIds, paths) =>
     return acc;
   }, {});
 
-_.toPublic = (paths) =>
-  Object.values(paths).reduce((acc, ps) => {
-    if (ps) {
-      return [ ...acc, ...Object.values(ps), ];
-    }
-    return acc;
-  }, []);
+const filterNull = (paths) => Object.values(paths).filter(x => x !== null);
+
+_.toPublic = util.compose(util.flatten, util.map(Object.values), filterNull);
