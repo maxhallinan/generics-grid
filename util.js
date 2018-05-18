@@ -1,5 +1,7 @@
 const _ = module.exports;
 
+_.always = (x) => () => x;
+
 _.compose = (...fns) => (...args) => {
   const [ f1, ...fs ] = [ ...fns, ].reverse();
   return fs.reduce((x, f) => f(x), f1(...args));

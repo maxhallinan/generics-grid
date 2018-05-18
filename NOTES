@@ -1,0 +1,48 @@
+Streams:
+
+- Get MTA feed updates
+- FeedUpdate to TripUpdate
+- TripUpdate to Path
+- SessionPath to Message
+
+Streams
+
+- MtaFeed
+- TripUpdate
+- Path
+- SocketConnection
+- Session
+- SessionPoints
+- PathIds
+
+- Get feed update
+- Transform feed update to trip update
+- Notify sessions of trip update
+- Get socket connection
+- Start session
+- Transform query to dimensions
+- Transform dimensions and app points to session points
+- Transform trip updates, last paths, and session points to paths
+- Transform dimensions, session points, and paths to message
+
+Streams
+
+- dimensions `Subject`
+- feeds `Observable`
+- paths `Observable`
+- path ids `Observable`
+- points `Subject`
+- point ids `Subject`
+- sessions
+- messages
+- socket connections
+- socket disconnections
+- trip updates `Subject`
+
+```
+const tripUpdates = new Rx.Subject();
+tripUpdates.map(feedToTripUpdate);
+const feeds = Rx.Observable.from(...);
+feeds.subscribe(tripUpdates);
+```
+
