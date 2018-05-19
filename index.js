@@ -68,9 +68,9 @@ const app = {
 };
 
 const startSession = (app) => (websocket, request) => {
-  const id = uuidv1();
+  const sessionId = uuidv1();
   const startedAt = Date.now();
-  app.logger.log(`Session ${id} started at ${startedAt}.`);
+  app.logger.log(`Session ${sessionId} started at ${startedAt}.`);
 
   const { query, } = url.parse(request.url, true);
 
@@ -87,25 +87,51 @@ const startSession = (app) => (websocket, request) => {
     app.original.points
   );
 
-  const sessionState = {
-    id,
+  // TODO: move to server/session
+  const initSession = {
     dimensions: sessionDimensions,
     pathIds: {
       privateToPublic: {},
       publicToPrivate: {},
     },
     paths: {},
+    pointIds: app.points.ids,
     points: sessionPoints,
     startedAt,
-    websocket: websocket,
   };
 
-  const pathsListener = sendMsg(app, sessionState);
+  const sessionState = app.tripUpdateFeeds.pipe(
+    rxOperators.scan((state, feeds) => ({
+      ...state,
+      pathIds: paths.updateIdsFromFeeds(
+        feeds,
+        state.pathIds
+      ),
+      paths: paths.updateFromFeeds(
+        feeds,
+        state.pointIds,
+        state.pathIds,
+        state.paths
+      ),
+    }), initSession),
+  );
 
-  const subscription = app.tripUpdateFeeds.subscribe({
+  const sessionMessages = sessionState.pipe(
+    rxOperators.map((state) => ({
+      paths: paths.toPublic(state.paths),
+      points: points.toPublic(state.pointIds, state.points),
+      dimensions: state.dimensions,
+    })),
+  );
+
+  const subscription = sessionMessages.subscribe({
     complete: () => { app.logger.log('Complete'); },
     error: (err) => { app.logger.log('Error', err); },
-    next: pathsListener,
+    next: sendMsg({
+      logger: app.logger,
+      sessionId,
+      websocket,
+    }),
   });
 
   websocket.on(
@@ -114,39 +140,19 @@ const startSession = (app) => (websocket, request) => {
   );
 };
 
+// TODO: move to server/session
 const endSession = (app, sessionState, subscription) => () => {
   const endedAt = Date.now();
   subscription.unsubscribe();
   app.logger.log(`Session ${sessionState.id} ended at ${endedAt}`);
 };
 
-const sendMsg = (app, sessionState) => (updates) => {
+// TODO: move to server/session
+const sendMsg = ({ logger, sessionId, websocket, }) => (msg) => {
   const sentAt = Date.now();
-
-  sessionState.pathIds = paths.updateIdsFromFeeds(
-    updates,
-    sessionState.pathIds
-  );
-
-  sessionState.paths = paths.updateFromFeeds(
-    updates,
-    app.points.ids,
-    sessionState.pathIds,
-    sessionState.paths
-  );
-
-  const publicPaths = paths.toPublic(sessionState.paths);
-
-  const msg = {
-    updates,
-    paths: publicPaths,
-    points: points.toPublic(app.points.ids, sessionState.points),
-    dimensions: sessionState.dimensions,
-    sentAt,
-  };
-  const serialized = JSON.stringify(msg);
-  sessionState.websocket.send(serialized);
-  app.logger.log(`Session ${sessionState.id} msg sent at ${sentAt}`);
+  const serialized = JSON.stringify({ ...msg, sentAt, });
+  websocket.send(serialized);
+  logger.log(`Session ${sessionId} msg sent at ${sentAt}`);
 };
 
 server.on(serverEvents.CONNECTION, startSession(app));
