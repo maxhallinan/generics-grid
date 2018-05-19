@@ -1,6 +1,7 @@
 require(`dotenv`).config();
 const EventEmitter = require(`events`);
-const Bacon = require(`baconjs`);
+const Rx = require(`rxjs`);
+const rxOperators = require(`rxjs/operators`);
 const url = require(`url`);
 const uuidv1 = require(`uuid/v1`);
 const WebSocket = require(`ws`);
@@ -21,16 +22,16 @@ const feedsConfig = {
 };
 const feedIds = process.env[`MTA_FEED_IDS`].split(`,`);
 const refreshInterval = process.env[`MTA_FEED_REFRESH_INTERVAL`];
-const $timer = Bacon.interval(refreshInterval);
+const timer = Rx.timer(0, refreshInterval);
 const feedsReq = (feedsConfig, feedIds) => () =>
   mtaFeeds.fetchAll(feedsConfig, feedIds);
-const toFeedsEventStream = util.compose(
-  Bacon.fromPromise,
-  feedsReq(feedsConfig, feedIds)
+const toFeeds = util.compose(Rx.from, feedsReq(feedsConfig, feedIds));
+const tripUpdateFeeds = timer.pipe(
+  rxOperators.flatMap(toFeeds),
+  rxOperators.map(tripUpdates.fromMtaFeeds),
+  rxOperators.multicast(new Rx.Subject()),
 );
-const $tripUpdates = $timer
-  .flatMap(toFeedsEventStream)
-  .map(tripUpdates.fromMtaFeeds);
+tripUpdateFeeds.connect();
 
 // server
 const serverEvents = {
@@ -59,7 +60,7 @@ const app = {
     points: originalPoints,
     ranges: originalRanges,
   },
-  $tripUpdates,
+  tripUpdateFeeds,
   points: {
     ids: points.createIds(originalPoints),
   },
@@ -101,17 +102,21 @@ const startSession = (app) => (websocket, request) => {
 
   const pathsListener = sendMsg(app, sessionState);
 
-  app.$tripUpdates.onValue(pathsListener);
+  const subscription = app.tripUpdateFeeds.subscribe({
+    complete: () => { app.logger.log('Complete'); },
+    error: (err) => { app.logger.log('Error', err); },
+    next: pathsListener,
+  });
 
   websocket.on(
     serverEvents.CLOSE,
-    endSession(app, sessionState, pathsListener)
+    endSession(app, sessionState, subscription)
   );
 };
 
-const endSession = (app, sessionState, pathsListener) => () => {
+const endSession = (app, sessionState, subscription) => () => {
   const endedAt = Date.now();
-  app.paths.source.removeListener(pathEvents.DATA, pathsListener);
+  subscription.unsubscribe();
   app.logger.log(`Session ${sessionState.id} ended at ${endedAt}`);
 };
 
