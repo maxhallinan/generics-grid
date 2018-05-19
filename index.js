@@ -125,8 +125,16 @@ const startSession = (app) => (websocket, request) => {
   );
 
   const subscription = sessionMessages.subscribe({
-    complete: () => { app.logger.log('Complete'); },
-    error: (err) => { app.logger.log('Error', err); },
+    complete: completeSession({
+      logger: app.logger,
+      sessionId,
+      websocket,
+    }),
+    error: handleErr({
+      logger: app.logger,
+      sessionId,
+      websocket,
+    }),
     next: sendMsg({
       logger: app.logger,
       sessionId,
@@ -136,15 +144,34 @@ const startSession = (app) => (websocket, request) => {
 
   websocket.on(
     serverEvents.CLOSE,
-    endSession(app, sessionState, subscription)
+    endSession({
+      logger: app.logger,
+      sessionId,
+      subscription
+    })
   );
 };
 
 // TODO: move to server/session
-const endSession = (app, sessionState, subscription) => () => {
+const completeSession = ({ logger, sessionId, websocket, }) => () => {
+  const completedAt = Date.now();
+  websocket.close();
+  logger.log(`Session ${sessionId} completed at ${completedAt}`);
+};
+
+// TODO: move to server/session
+const handleErr = ({ logger, sessionId, websocket, }) => (err) => {
+  const errAt = Date.now();
+  websocket.close();
+  logger.log(`Session ${sessionId} error at ${errAt}`);
+  logger.log(`Session ${sessionId} error ${err}`);
+};
+
+// TODO: move to server/session
+const endSession = ({ logger, sessionId, subscription, }) => () => {
   const endedAt = Date.now();
   subscription.unsubscribe();
-  app.logger.log(`Session ${sessionState.id} ended at ${endedAt}`);
+  logger.log(`Session ${sessionId} ended at ${endedAt}`);
 };
 
 // TODO: move to server/session
