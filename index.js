@@ -1,5 +1,4 @@
 require(`dotenv`).config();
-const EventEmitter = require(`events`);
 const Rx = require(`rxjs`);
 const rxOperators = require(`rxjs/operators`);
 const url = require(`url`);
@@ -26,23 +25,32 @@ const timer = Rx.timer(0, refreshInterval);
 const feedsReq = (feedsConfig, feedIds) => () =>
   mtaFeeds.fetchAll(feedsConfig, feedIds);
 const toFeeds = util.compose(Rx.from, feedsReq(feedsConfig, feedIds));
+const logFeedsError = ({ logger, }) => (error) => {
+  logger.error(`feeds error`, {
+    error: error.message,
+    type: `FEEDS_ERROR`,
+  });
+};
+const logFeedsUpdate = ({ logger, }) => (feeds) => {
+  const updatedFeeds = mtaFeeds.filterNull(feeds);
+  const feedIds = Object.keys(updatedFeeds).join(`,`);
+  logger.info(`feeds updated`, {
+    feedIds,
+    type: `FEEDS_UPDATED`,
+  });
+};
 const tripUpdateFeeds = timer.pipe(
   rxOperators.flatMap(toFeeds),
   rxOperators.map(tripUpdates.fromMtaFeeds),
-  rxOperators.multicast(new Rx.Subject()),
+  rxOperators.tap({
+    error: logFeedsError({ logger, }),
+    next: logFeedsUpdate({ logger, }),
+  }),
+  rxOperators.multicast(new Rx.Subject())
 );
 tripUpdateFeeds.connect();
 
-// server
-const serverEvents = {
-  CLOSE: `close`,
-  CONNECTION : `connection`,
-};
-const port = util.toInt(process.env[`WS_PORT`]);
-const server = new WebSocket.Server({ port, });
-
 const originalRanges = points.rangesOf2dPoints(originalPoints);
-
 const defaultRanges = dimensions.to2dRanges([
   util.toInt(process.env[`RANGE_X_START`]),
   util.toInt(process.env[`RANGE_X_STOP`]),
@@ -50,7 +58,6 @@ const defaultRanges = dimensions.to2dRanges([
   util.toInt(process.env[`RANGE_Y_START`]),
   util.toInt(process.env[`RANGE_Y_STOP`]),
 ]);
-
 const app = {
   default_: {
     ranges: defaultRanges,
@@ -64,41 +71,25 @@ const app = {
   points: {
     ids: points.createIds(originalPoints),
   },
-  server,
 };
 
 const startSession = (app) => (websocket, request) => {
   const sessionId = uuidv1();
-  const startedAt = Date.now();
-  app.logger.log(`Session ${sessionId} started at ${startedAt}.`);
+
+  app.logger.info(`session started`, {
+    sessionId,
+    type: `SESSION_STARTED`,
+  });
 
   const { query, } = url.parse(request.url, true);
 
-  const sessionRanges = session.toRanges(query, app.default_.ranges);
-
-  const sessionDimensions = dimensions.to2d(
-    sessionRanges.x,
-    sessionRanges.y
-  );
-
-  const sessionPoints = session.toPoints(
-    sessionRanges,
-    app.original.ranges,
-    app.original.points
-  );
-
-  // TODO: move to server/session
-  const initSession = {
-    dimensions: sessionDimensions,
-    pathIds: {
-      privateToPublic: {},
-      publicToPrivate: {},
-    },
-    paths: {},
+  const initialState = session.initState({
+    query,
+    defaultRanges: app.default_.ranges,
+    originalPoints: app.original.points,
+    originalRanges: app.original.ranges,
     pointIds: app.points.ids,
-    points: sessionPoints,
-    startedAt,
-  };
+  });
 
   const sessionState = app.tripUpdateFeeds.pipe(
     rxOperators.scan((state, feeds) => ({
@@ -113,7 +104,7 @@ const startSession = (app) => (websocket, request) => {
         state.pathIds,
         state.paths
       ),
-    }), initSession),
+    }), initialState)
   );
 
   const sessionMessages = sessionState.pipe(
@@ -121,65 +112,36 @@ const startSession = (app) => (websocket, request) => {
       paths: paths.toPublic(state.paths),
       points: points.toPublic(state.pointIds, state.points),
       dimensions: state.dimensions,
-    })),
+    }))
   );
 
   const subscription = sessionMessages.subscribe({
-    complete: completeSession({
+    error: session.handleErr({
       logger: app.logger,
       sessionId,
       websocket,
     }),
-    error: handleErr({
-      logger: app.logger,
-      sessionId,
-      websocket,
-    }),
-    next: sendMsg({
+    next: session.sendMsg({
       logger: app.logger,
       sessionId,
       websocket,
     }),
   });
 
-  websocket.on(
-    serverEvents.CLOSE,
-    endSession({
-      logger: app.logger,
-      sessionId,
-      subscription
-    })
-  );
+  websocket.on(`close`, session.end({
+    logger: app.logger,
+    sessionId,
+    subscription,
+  }));
 };
 
-// TODO: move to server/session
-const completeSession = ({ logger, sessionId, websocket, }) => () => {
-  const completedAt = Date.now();
-  websocket.close();
-  logger.log(`Session ${sessionId} completed at ${completedAt}`);
+const port = process.env[`WS_PORT`];
+const server = new WebSocket.Server({ port, });
+const logServerListening = ({ logger, port, }) => () => {
+  logger.info(`server started`, {
+    port,
+    type: `SERVER_LISTENING`,
+  });
 };
-
-// TODO: move to server/session
-const handleErr = ({ logger, sessionId, websocket, }) => (err) => {
-  const errAt = Date.now();
-  websocket.close();
-  logger.log(`Session ${sessionId} error at ${errAt}`);
-  logger.log(`Session ${sessionId} error ${err}`);
-};
-
-// TODO: move to server/session
-const endSession = ({ logger, sessionId, subscription, }) => () => {
-  const endedAt = Date.now();
-  subscription.unsubscribe();
-  logger.log(`Session ${sessionId} ended at ${endedAt}`);
-};
-
-// TODO: move to server/session
-const sendMsg = ({ logger, sessionId, websocket, }) => (msg) => {
-  const sentAt = Date.now();
-  const serialized = JSON.stringify({ ...msg, sentAt, });
-  websocket.send(serialized);
-  logger.log(`Session ${sessionId} msg sent at ${sentAt}`);
-};
-
-server.on(serverEvents.CONNECTION, startSession(app));
+server.on(`listening`, logServerListening({ logger, port, }));
+server.on(`connection`, startSession(app));

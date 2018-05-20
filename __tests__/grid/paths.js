@@ -445,14 +445,14 @@ describe(`grid > paths`, () => {
         'feed-2': null,
         'feed-3': {
           'path-public-1': {
-            id: 'path-public-1',
-            points: [ 'point-public-1', ],
-          }
-        }
+            id: `path-public-1`,
+            points: [ `point-public-1`, ],
+          },
+        },
       };
       const actual = paths.toPublic(ps);
       const expected = expect.arrayContaining([
-        ps['feed-3']['path-public-1'],
+        ps[`feed-3`][`path-public-1`],
       ]);
       expect(actual).toEqual(expected);
     });

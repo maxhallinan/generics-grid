@@ -46,3 +46,20 @@ const feeds = Rx.Observable.from(...);
 feeds.subscribe(tripUpdates);
 ```
 
+
+Logging
+
+- feeds interval started
+- feeds update
+- feeds error
+- feeds completed
+- websockets server started
+- websockets server error
+- websockets connection
+- session started
+- session started error
+- session updated
+- session update error
+- message sent
+- message sent error
+
