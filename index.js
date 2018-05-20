@@ -40,6 +40,7 @@ const serverEvents = {
 };
 const port = util.toInt(process.env[`WS_PORT`]);
 const server = new WebSocket.Server({ port, });
+logger.info(`Server started`, { port, });
 
 const originalRanges = points.rangesOf2dPoints(originalPoints);
 
@@ -69,8 +70,7 @@ const app = {
 
 const startSession = (app) => (websocket, request) => {
   const sessionId = uuidv1();
-  const startedAt = Date.now();
-  app.logger.log(`Session ${sessionId} started at ${startedAt}.`);
+  app.logger.info(`Session started`, { sessionId, });
 
   const { query, } = url.parse(request.url, true);
 
@@ -97,7 +97,6 @@ const startSession = (app) => (websocket, request) => {
     paths: {},
     pointIds: app.points.ids,
     points: sessionPoints,
-    startedAt,
   };
 
   const sessionState = app.tripUpdateFeeds.pipe(
@@ -156,22 +155,21 @@ const startSession = (app) => (websocket, request) => {
 const completeSession = ({ logger, sessionId, websocket, }) => () => {
   const completedAt = Date.now();
   websocket.close();
-  logger.log(`Session ${sessionId} completed at ${completedAt}`);
+  logger.warn(`Feed completed`, { sessionId, });
 };
 
 // TODO: move to server/session
 const handleErr = ({ logger, sessionId, websocket, }) => (err) => {
   const errAt = Date.now();
   websocket.close();
-  logger.log(`Session ${sessionId} error at ${errAt}`);
-  logger.log(`Session ${sessionId} error ${err}`);
+  logger.error(`Feed error`, { error, sessionId, });
 };
 
 // TODO: move to server/session
 const endSession = ({ logger, sessionId, subscription, }) => () => {
   const endedAt = Date.now();
   subscription.unsubscribe();
-  logger.log(`Session ${sessionId} ended at ${endedAt}`);
+  logger.info(`Session ended`, { sessionId, });
 };
 
 // TODO: move to server/session
@@ -179,7 +177,7 @@ const sendMsg = ({ logger, sessionId, websocket, }) => (msg) => {
   const sentAt = Date.now();
   const serialized = JSON.stringify({ ...msg, sentAt, });
   websocket.send(serialized);
-  logger.log(`Session ${sessionId} msg sent at ${sentAt}`);
+  logger.info(`Message sent`, { sessionId, });
 };
 
 server.on(serverEvents.CONNECTION, startSession(app));
