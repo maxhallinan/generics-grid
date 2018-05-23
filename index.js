@@ -131,7 +131,7 @@ const startSession = (app) => (websocket, request) => {
   websocket.on(`close`, session.end({
     logger: app.logger,
     sessionId,
-    subscription,
+    feedSubscription,
   }));
 };
 
