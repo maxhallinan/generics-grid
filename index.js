@@ -135,8 +135,12 @@ const startSession = (app) => (websocket, request) => {
   }));
 };
 
+const host = process.env[`WS_HOST`];
 const port = process.env[`WS_PORT`];
-const server = new WebSocket.Server({ port, });
+const server = new WebSocket.Server({
+  host,
+  port,
+});
 const logServerListening = ({ logger, port, }) => () => {
   logger.info(`server started`, {
     port,
