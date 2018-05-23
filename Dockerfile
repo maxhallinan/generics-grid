@@ -1,6 +1,6 @@
 FROM node:10.1.0
 COPY . /app
 WORKDIR /app
-RUN yarn
+RUN npm install
 EXPOSE 80
-CMD ["yarn","start"]
+CMD ["npm","start"]
