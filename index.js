@@ -115,7 +115,7 @@ const startSession = (app) => (websocket, request) => {
     }))
   );
 
-  const subscription = sessionMessages.subscribe({
+  const feedSubscription = sessionMessages.subscribe({
     error: session.handleErr({
       logger: app.logger,
       sessionId,
