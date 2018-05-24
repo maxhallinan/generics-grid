@@ -67,7 +67,7 @@ const feedsToPrivateIds = (feeds) =>
       return [ ...acc, ...Object.values(updates), ];
     }
     return acc;
-  }, []).map(({ id, }) => id);
+  }, []).map(({ id, }) => id).filter((id) => !!id);
 
 _.updateIdsFromFeeds = (feeds, pathIds) =>  {
   const currentPrivateIds = Object.keys(pathIds.privateToPublic);

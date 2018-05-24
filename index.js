@@ -92,19 +92,23 @@ const startSession = (app) => (websocket, request) => {
   });
 
   const sessionState = app.tripUpdateFeeds.pipe(
-    rxOperators.scan((state, feeds) => ({
-      ...state,
-      pathIds: paths.updateIdsFromFeeds(
+    rxOperators.scan((state, feeds) => {
+      const pathIds = paths.updateIdsFromFeeds(
         feeds,
         state.pathIds
-      ),
-      paths: paths.updateFromFeeds(
-        feeds,
-        state.pointIds,
-        state.pathIds,
-        state.paths
-      ),
-    }), initialState)
+      );
+
+      return {
+        ...state,
+        pathIds,
+        paths: paths.updateFromFeeds(
+          feeds,
+          state.pointIds,
+          pathIds,
+          state.paths
+        ),
+      };
+    }, initialState),
   );
 
   const sessionMessages = sessionState.pipe(
