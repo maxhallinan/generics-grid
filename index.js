@@ -19,7 +19,7 @@ const feedsConfig = {
   apiKey: process.env[`MTA_FEED_API_KEY`],
   urlBase: process.env[`MTA_FEED_ROOT_URL`],
 };
-const feedIds = process.env[`MTA_FEED_IDS`].split(`,`);
+const feedIds = process.env[`MTA_FEED_IDS`].split(`_`);
 const refreshInterval = process.env[`MTA_FEED_REFRESH_INTERVAL`];
 const timer = Rx.timer(0, refreshInterval);
 const feedsReq = (feedsConfig, feedIds) => () =>
