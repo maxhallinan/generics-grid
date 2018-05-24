@@ -22,8 +22,13 @@ const getFeed = (config, feedId) => {
   return request({
     encoding: null,
     method: 'GET',
+    resolveWithFullResponse: true,
+    family: 4,
     url,
-  }).then(res => [feedId, res]);
+  }).then(res => {
+    res.resume();
+    return res.body;
+  }).then(res => [ feedId, res, ]);
 };
 
 const getFeeds = (config, feedIds) =>

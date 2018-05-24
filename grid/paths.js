@@ -59,7 +59,7 @@ _.fromTripUpdates = (pointIds, pathIds, tripUpdates, cache) =>
     };
 
     return acc;
-  }, {});
+  }, { ...cache, });
 
 const feedsToPrivateIds = (feeds) =>
   Object.values(feeds).reduce((acc, updates) => {
@@ -104,4 +104,9 @@ _.updateFromFeeds = (feeds, pointIds, pathIds, paths) =>
 
 const filterNull = (paths) => Object.values(paths).filter(x => x !== null);
 
-_.toPublic = util.compose(util.flatten, util.map(Object.values), filterNull);
+_.toPublic = util.compose(
+  (paths) => paths.filter((p) => p.points.length > 1),
+  util.flatten,
+  util.map(Object.values),
+  filterNull
+);
