@@ -1,5 +1,7 @@
 const _ = module.exports;
 
+_.add = (x) => (y) => x + y;
+
 _.always = (x) => () => x;
 
 _.compose = (...fns) => (...args) => {
@@ -7,7 +9,11 @@ _.compose = (...fns) => (...args) => {
   return fs.reduce((x, f) => f(x), f1(...args));
 };
 
+_.head = (xs) => xs[0];
+
 _.identity = (x) => x;
+
+_.increment = _.add(1);
 
 _.isObj = (x) => x !== null && typeof x === `object`;
 
@@ -51,3 +57,5 @@ _.mapObj = (f, obj) => Object.entries(obj).reduce((acc, [ k, v, ]) => {
 _.toInt = (x) => parseInt(x, 10);
 
 _.prop = (x) => (obj) => obj[x];
+
+_.subtract = (x, y) => x - y;

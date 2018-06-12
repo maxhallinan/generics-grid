@@ -15,13 +15,59 @@ const session = require(`./server/session`);
 const tripUpdates = require(`./data-sources/trip-updates`);
 const util = require(`./util`);
 
+const host = process.env[`WS_HOST`];
+const port = process.env[`WS_PORT`];
+const server = new WebSocket.Server({
+  host,
+  port,
+});
+const logServerListening = ({ logger, port, }) => () => {
+  logger.info(`server started`, {
+    port,
+    type: `SERVER_LISTENING`,
+  });
+};
+server.on(`listening`, logServerListening({ logger, port, }));
+
+const socket$ = Rx.fromEvent(server, `connection`).pipe(
+  rxOperators.map(util.head)
+);
+const connectionEventCount$ = socket$.pipe(
+  rxOperators.scan(util.increment, 0)
+);
+const createCloseEvent$ = (socket) => Rx.fromEvent(socket, `close`);
+const closeEvent$ = socket$.pipe(
+  rxOperators.flatMap(createCloseEvent$)
+);
+const zero$ = Rx.of(0);
+const closeEventCount$ = Rx.merge(
+  zero$,
+  closeEvent$.pipe(rxOperators.scan(util.increment, 0))
+);
+const activeSocketCount$ = Rx.combineLatest(
+  [ connectionEventCount$, closeEventCount$, ],
+  util.subtract,
+);
+activeSocketCount$.subscribe({
+  next: (count) => {
+    console.log(`active count ${count}`)
+  },
+});
+const isMtaFeedsPaused = (count) => 1 > count;
+const isMtaFeedsPaused$ = activeSocketCount$.pipe(rxOperators.map(isMtaFeedsPaused));
+isMtaFeedsPaused$.subscribe({
+  next: (isPaused) => {
+    console.log(`is paused ${isPaused}`)
+  },
+});
+
+const refreshInterval = process.env[`MTA_FEED_REFRESH_INTERVAL`];
+
 const feedsConfig = {
   apiKey: process.env[`MTA_FEED_API_KEY`],
   urlBase: process.env[`MTA_FEED_ROOT_URL`],
 };
 const feedIds = process.env[`MTA_FEED_IDS`].split(`_`);
-const refreshInterval = process.env[`MTA_FEED_REFRESH_INTERVAL`];
-const timer = Rx.timer(0, refreshInterval);
 const feedsReq = (feedsConfig, feedIds) => () =>
   mtaFeeds.fetchAll(feedsConfig, feedIds);
 const toFeeds = util.compose(Rx.from, feedsReq(feedsConfig, feedIds));
@@ -39,16 +85,32 @@ const logFeedsUpdate = ({ logger, }) => (feeds) => {
     type: `FEEDS_UPDATED`,
   });
 };
-const tripUpdateFeeds = timer.pipe(
-  rxOperators.flatMap(toFeeds),
-  rxOperators.map(tripUpdates.fromMtaFeeds),
-  rxOperators.tap({
-    error: logFeedsError({ logger, }),
-    next: logFeedsUpdate({ logger, }),
-  }),
+const createTripUpdateFeeds = () => {
+  const timer = Rx.timer(0, refreshInterval);
+
+  const tripUpdateFeed$ = timer.pipe(
+    rxOperators.flatMap(toFeeds),
+    rxOperators.map(tripUpdates.fromMtaFeeds),
+    rxOperators.tap({
+      error: logFeedsError({ logger, }),
+      next: logFeedsUpdate({ logger, }),
+    }),
+  );
+
+  return tripUpdateFeed$;
+};
+const createPausableFeeds = (isPaused) => isPaused
+  ? Rx.NEVER
+  : createTripUpdateFeeds();
+
+const tripUpdateFeeds = isMtaFeedsPaused$.pipe(
+  rxOperators.switchMap(createPausableFeeds),
   rxOperators.multicast(new Rx.Subject())
 );
 tripUpdateFeeds.connect();
+tripUpdateFeeds.subscribe({
+  error: (e) => console.log(e),
+});
 
 const originalRanges = points.rangesOf2dPoints(originalPoints);
 const defaultRanges = dimensions.to2dRanges([
@@ -139,17 +201,4 @@ const startSession = (app) => (websocket, request) => {
   }));
 };
 
-const host = process.env[`WS_HOST`];
-const port = process.env[`WS_PORT`];
-const server = new WebSocket.Server({
-  host,
-  port,
-});
-const logServerListening = ({ logger, port, }) => () => {
-  logger.info(`server started`, {
-    port,
-    type: `SERVER_LISTENING`,
-  });
-};
-server.on(`listening`, logServerListening({ logger, port, }));
 server.on(`connection`, startSession(app));
