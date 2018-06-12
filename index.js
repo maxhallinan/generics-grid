@@ -48,21 +48,10 @@ const activeSocketCount$ = Rx.combineLatest(
   [ connectionEventCount$, closeEventCount$, ],
   util.subtract,
 );
-activeSocketCount$.subscribe({
-  next: (count) => {
-    console.log(`active count ${count}`)
-  },
-});
 const isMtaFeedsPaused = (count) => 1 > count;
 const isMtaFeedsPaused$ = activeSocketCount$.pipe(rxOperators.map(isMtaFeedsPaused));
-isMtaFeedsPaused$.subscribe({
-  next: (isPaused) => {
-    console.log(`is paused ${isPaused}`)
-  },
-});
 
 const refreshInterval = process.env[`MTA_FEED_REFRESH_INTERVAL`];
-
 const feedsConfig = {
   apiKey: process.env[`MTA_FEED_API_KEY`],
   urlBase: process.env[`MTA_FEED_ROOT_URL`],
@@ -85,7 +74,7 @@ const logFeedsUpdate = ({ logger, }) => (feeds) => {
     type: `FEEDS_UPDATED`,
   });
 };
-const createTripUpdateFeeds = () => {
+const createTripUpdateFeeds = (refreshInterval) => {
   const timer = Rx.timer(0, refreshInterval);
 
   const tripUpdateFeed$ = timer.pipe(
@@ -99,18 +88,15 @@ const createTripUpdateFeeds = () => {
 
   return tripUpdateFeed$;
 };
-const createPausableFeeds = (isPaused) => isPaused
+const createPausableFeeds = (refreshInterval) => (isPaused) => isPaused
   ? Rx.NEVER
-  : createTripUpdateFeeds();
+  : createTripUpdateFeeds(refreshInterval);
 
 const tripUpdateFeeds = isMtaFeedsPaused$.pipe(
-  rxOperators.switchMap(createPausableFeeds),
+  rxOperators.switchMap(createPausableFeeds(refreshInterval)),
   rxOperators.multicast(new Rx.Subject())
 );
 tripUpdateFeeds.connect();
-tripUpdateFeeds.subscribe({
-  error: (e) => console.log(e),
-});
 
 const originalRanges = points.rangesOf2dPoints(originalPoints);
 const defaultRanges = dimensions.to2dRanges([
