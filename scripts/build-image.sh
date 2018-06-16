@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 
-LOCAL_TAG="generics-travel:$(git rev-parse --short HEAD)"
-REMOTE_TAG="maxhallinan/$LOCAL_TAG"
-docker build --tag $LOCAL_TAG .
-docker tag $LOCAL_TAG $REMOTE_TAG
-docker push $REMOTE_TAG
+BASE_TAG='maxhallinan/generics-travel'
+GIT_TAG="$BASE_TAG:$(git rev-parse --short HEAD)"
+LATEST_TAG="$BASE_TAG:latest"
+docker build --tag $GIT_TAG .
+docker tag $GIT_TAG $LATEST_TAG
+docker push $GIT_TAG
+docker push $LATEST_TAG
