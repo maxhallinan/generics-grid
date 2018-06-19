@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: generics-travel
+spec:
+  replicas: 2
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: generics-travel
+  template:
+    metadata:
+      labels:
+        app: generics-travel
+    spec:
+      containers:
+        - name: generics-travel
+          image: maxhallinan/generics-travel:latest
+          env:
+            - name: MTA_FEED_API_KEY
+              valueFrom:
+                configMapKeyRef:
+                  name: generics-travel
+                  key: MTA_FEED_API_KEY
+            - name: MTA_FEED_API_KEY
+              valueFrom:
+                configMapKeyRef:
+                  name: generics-travel
+                  key: MTA_FEED_API_KEY
+            - name: MTA_FEED_REFRESH_INTERVAL
+              valueFrom:
+                configMapKeyRef:
+                  name: generics-travel
+                  key: MTA_FEED_REFRESH_INTERVAL
+            - name: MTA_FEED_ROOT_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: generics-travel
+                  key: MTA_FEED_ROOT_URL
+            - name: RANGE_X_START
+              valueFrom:
+                configMapKeyRef:
+                  name: generics-travel
+                  key: RANGE_X_START
+            - name: RANGE_X_STOP
+              valueFrom:
+                configMapKeyRef:
+                  name: generics-travel
+                  key: RANGE_X_STOP
+            - name: RANGE_Y_START
+              valueFrom:
+                configMapKeyRef:
+                  name: generics-travel
+                  key: RANGE_Y_START
+            - name: RANGE_Y_STOP
+              valueFrom:
+                configMapKeyRef:
+                  name: generics-travel
+                  key: RANGE_Y_STOP
+            - name: WS_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: generics-travel
+                  key: WS_HOST
+            - name: WS_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: generics-travel
+                  key: WS_PORT
+          ports:
+            - name: http
+              containerPort: 80
